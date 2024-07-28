@@ -2,6 +2,9 @@ package com.ystar.user.interfaces;
 
 import com.ystar.user.dto.UserDTO;
 
+import java.util.List;
+import java.util.Map;
+
 public interface IUserRpc {
     /**
      * 根据用户id进行查询
@@ -24,4 +27,11 @@ public interface IUserRpc {
      * @return
      */
     boolean insertOne(UserDTO userDTO);
+
+    /**
+     * 批量查询用户
+     * @param userIdList
+     * @return
+     */
+    Map<Long , UserDTO> batchQueryUserInfo(List<Long> userIdList);
 }

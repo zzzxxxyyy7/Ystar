@@ -4,6 +4,9 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.ystar.user.dto.UserDTO;
 import com.ystar.user.provider.Domain.po.UserPO;
 
+import java.util.List;
+import java.util.Map;
+
 public interface IUserService extends IService<UserPO> {
 
     /**
@@ -26,5 +29,11 @@ public interface IUserService extends IService<UserPO> {
      * @return
      */
     boolean insertOne(UserDTO userDTO);
-    
+
+    /**
+     * 批量查询用户
+     * @param userIdList
+     * @return
+     */
+    Map<Long , UserDTO> batchQueryUserInfo(List<Long> userIdList);
 }

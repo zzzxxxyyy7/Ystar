@@ -8,6 +8,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Arrays;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 @RestController
 @RequestMapping("/user")
 public class UserController {
@@ -35,5 +39,10 @@ public class UserController {
         userDTO.setNickName("Ystar");
         userDTO.setSex(1);
         return userRpc.insertOne(userDTO);
+    }
+
+    @GetMapping("/batchQueryUserInfo")
+    public Map<Long, UserDTO> batchQueryUserInfo(@RequestParam String userIdStr) {
+        return userRpc.batchQueryUserInfo(Arrays.stream(userIdStr.split(",")).map(Long::valueOf).collect(Collectors.toList()));
     }
 }
