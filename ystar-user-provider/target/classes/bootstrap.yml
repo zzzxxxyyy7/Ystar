@@ -1,0 +1,10 @@
+server:
+  port: 60002
+
+spring:
+  application:
+    name: ystar-user-provider
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 139.224.188.112:8848
