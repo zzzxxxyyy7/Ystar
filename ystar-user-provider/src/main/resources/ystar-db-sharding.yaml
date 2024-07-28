@@ -1,19 +1,32 @@
 dataSources:
-  user:  ##新表，重建的分表
+  user_master: ##新表，重建的分表
     dataSourceClassName: com.zaxxer.hikari.HikariDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
-    jdbcUrl: jdbc:mysql://localhost:3306/ystar_user?useUnicode=true&characterEncoding=utf8
+    jdbcUrl: jdbc:mysql://139.224.188.112:8808/ystar_user?useUnicode=true&characterEncoding=utf8&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
+  user_slave0: ##新表，重建的分表
+    dataSourceClassName: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    jdbcUrl: jdbc:mysql://139.224.188.112:8809/ystar_user?useUnicode=true&characterEncoding=utf8&allowPublicKeyRetrieval=true
     username: root
     password: 123456
 
 rules:
+  - !READWRITE_SPLITTING
+    # 配置读写分离
+    dataSources:
+      user_ds:
+        staticStrategy:
+          writeDataSourceName: user_master
+          readDataSourceNames:
+            - user_slave0
   - !SINGLE
-    ## 不分表分库的默认数据源
-    defaultDataSource: user
+    defaultDataSource: user_ds  ## 不分表分分库的默认数据源（这里写的是读写分离那里的user_ds）
   - !SHARDING
     tables:
       t_user:
-        actualDataNodes: user.t_user_${(0..99).collect(){it.toString().padLeft(2,'0')}}
+        actualDataNodes: user_ds.t_user_${(0..99).collect(){it.toString().padLeft(2,'0')}}
         tableStrategy:
           standard:
             shardingColumn: user_id
