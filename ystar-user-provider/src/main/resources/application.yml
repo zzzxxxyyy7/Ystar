@@ -1,0 +1,11 @@
+spring:
+  datasource:
+    driver-class-name: org.apache.shardingsphere.driver.ShardingSphereDriver
+    url: jdbc:shardingsphere:classpath:ystar-db-sharding.yaml
+    hikari:
+      pool-name: ystar-user-pool
+      minimum-idle: 150
+      maximum-pool-size: 300
+      #connection-init-sql: select 1
+      connection-timeout: 4000
+      max-lifetime: 60000

@@ -1,0 +1,29 @@
+dataSources:
+  user:  ##新表，重建的分表
+    dataSourceClassName: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    jdbcUrl: jdbc:mysql://localhost:3306/ystar_user?useUnicode=true&characterEncoding=utf8
+    username: root
+    password: 123456
+
+rules:
+  - !SINGLE
+    ## 不分表分库的默认数据源
+    defaultDataSource: user
+  - !SHARDING
+    tables:
+      t_user:
+        actualDataNodes: user.t_user_${(0..99).collect(){it.toString().padLeft(2,'0')}}
+        tableStrategy:
+          standard:
+            shardingColumn: user_id
+            shardingAlgorithmName: t_user-inline
+
+    shardingAlgorithms:
+      t_user-inline:
+        type: INLINE
+        props:
+          algorithm-expression: t_user_${(user_id % 100).toString().padLeft(2,'0')}
+
+props:
+  sql-show: true  #打印sql

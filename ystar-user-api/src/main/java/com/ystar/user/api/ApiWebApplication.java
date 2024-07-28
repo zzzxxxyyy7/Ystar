@@ -12,7 +12,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 public class ApiWebApplication {
     public static void main(String[] args) {
         SpringApplication springApplication = new SpringApplication(ApiWebApplication.class);
-        springApplication.setWebApplicationType(WebApplicationType.SERVLET);//Dubbo不使用tomcat，使用netty
+        springApplication.setWebApplicationType(WebApplicationType.SERVLET);
         springApplication.run(args);
     }
 }
