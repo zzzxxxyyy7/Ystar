@@ -1,0 +1,8 @@
+dubbo:
+  application:
+    name: ystar-user-api
+    qos-enable: false
+  registry:
+    address: nacos://139.224.188.112:8848
+  consumer:
+    timeout: 6000

@@ -1,0 +1,2 @@
+ystart.framework.redis.starter.config.RedisConfig
+ystart.framework.redis.starter.key.UserProviderCacheKeyBuilder

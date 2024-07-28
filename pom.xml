@@ -13,6 +13,9 @@
       <module>ystar-user-provider</module>
       <module>ystar-user-api</module>
       <module>ystar-common-interface</module>
+      <module>ystar-framework</module>
+      <module>ystar-framework/ystar-framework-datasource-starter</module>
+      <module>ystar-framework/ystar-framework-redis-starter</module>
   </modules>
 
     <parent>

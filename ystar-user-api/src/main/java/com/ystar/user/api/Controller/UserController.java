@@ -32,7 +32,7 @@ public class UserController {
     public boolean insertUser(@RequestParam Long userId) {
         UserDTO userDTO = new UserDTO();
         userDTO.setUserId(userId);
-        userDTO.setNickName("Y");
+        userDTO.setNickName("Ystar");
         userDTO.setSex(1);
         return userRpc.insertOne(userDTO);
     }
