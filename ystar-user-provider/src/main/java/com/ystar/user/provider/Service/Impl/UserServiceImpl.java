@@ -7,13 +7,18 @@ import com.ystar.user.provider.Domain.mapper.IUserMapper;
 import com.ystar.user.provider.Domain.po.UserPO;
 import com.ystar.user.provider.Service.IUserService;
 import jakarta.annotation.Resource;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import ystart.framework.redis.starter.key.UserProviderCacheKeyBuilder;
 
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,7 +42,7 @@ public class UserServiceImpl extends ServiceImpl<IUserMapper, UserPO> implements
         if (userDTO != null) return userDTO;
 
         userDTO = ConvertBeanUtils.convert(iUserMapper.selectById(userId) , UserDTO.class);
-        if (userDTO != null) redisTemplate.opsForValue().set(key , userDTO);
+        if (userDTO != null) redisTemplate.opsForValue().set(key , userDTO , 30 , TimeUnit.MINUTES);
 
         return userDTO;
     }
@@ -63,24 +68,21 @@ public class UserServiceImpl extends ServiceImpl<IUserMapper, UserPO> implements
     @Override
     public Map<Long, UserDTO> batchQueryUserInfo(List<Long> userIdList) {
         if (CollectionUtils.isEmpty(userIdList)) return new HashMap<>();
-        // userIdList = userIdList.stream().filter(id -> id > 10000).collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(userIdList)) return new HashMap<>();
+//        userIdList = userIdList.stream().filter(id -> id > 10000).collect(Collectors.toList());
+//        if (CollectionUtils.isEmpty(userIdList)) return new HashMap<>();
 
-        List<String> keyList = new ArrayList<>();
-        userIdList.forEach(userId -> {
-            keyList.add(userProviderCacheKeyBuilder.buildUserInfoKey(userId));
-
-        });
+        List<String> multiKeyList = new ArrayList<>();
+        userIdList.forEach(userId -> multiKeyList.add(userProviderCacheKeyBuilder.buildUserInfoKey(userId)));
         // 缓存匹配，非空过滤
-        List<UserDTO> userDTOS = redisTemplate.opsForValue().multiGet(keyList).stream().filter(x -> x != null).toList();
+        List<UserDTO> userDTOList = redisTemplate.opsForValue().multiGet(multiKeyList).stream().filter(x -> x != null).collect(Collectors.toList());
 
         // 提速、提前判断
-        if (!CollectionUtils.isEmpty(userDTOS) && userDTOS.size() == userIdList.size()) {
-            return userDTOS.stream().collect(Collectors.toMap(UserDTO::getUserId , userDTO -> userDTO));
+        if (!CollectionUtils.isEmpty(userDTOList) && userDTOList.size() == userIdList.size()) {
+            return userDTOList.stream().collect(Collectors.toMap(UserDTO::getUserId , userDTO -> userDTO));
         }
 
         // 在缓存中的集合
-        List<Long> userIdInCacheList = userDTOS.stream().map(UserDTO::getUserId).toList();
+        List<Long> userIdInCacheList = userDTOList.stream().map(UserDTO::getUserId).toList();
         // 没在缓存的集合
         List<Long> userIdNotInCacheList = userIdList.stream().filter(x -> !userIdInCacheList.contains(x)).toList();
 
@@ -88,10 +90,10 @@ public class UserServiceImpl extends ServiceImpl<IUserMapper, UserPO> implements
          * 缓存没有的再去查 DB
          * 并行流多线程处理 替换 union all 方式 提高执行效率
          */
-        Map<Long, List<Long>> collect = userIdNotInCacheList.stream().collect(Collectors.groupingBy(userId -> userId % 100));
+        Map<Long, List<Long>> userIdMap = userIdNotInCacheList.stream().collect(Collectors.groupingBy(userId -> userId % 100));
         List<UserDTO> dbQueryResult = new CopyOnWriteArrayList<>();
         // 并行流，所有的数据会被划分为不同的段
-        collect.values().parallelStream().forEach(queryUserIdList -> {
+        userIdMap.values().parallelStream().forEach(queryUserIdList -> {
             dbQueryResult.addAll(ConvertBeanUtils.convertList(iUserMapper.selectBatchIds(queryUserIdList) , UserDTO.class));
         });
 
@@ -100,8 +102,27 @@ public class UserServiceImpl extends ServiceImpl<IUserMapper, UserPO> implements
               Collectors.toMap(userDTO -> userProviderCacheKeyBuilder.buildUserInfoKey(userDTO.getUserId()) , x -> x)
             );
             redisTemplate.opsForValue().multiSet(saveCacheMap);
+
+            // PipeLine 批量设置过期时间
+            redisTemplate.executePipelined(new SessionCallback<>() {
+                @Override
+                public <K, V> Object execute(RedisOperations<K, V> operations) throws DataAccessException {
+                    // 针对每一个 key , 设置过期时间
+                    for (String redisKey : saveCacheMap.keySet()) {
+                        operations.expire((K) redisKey, createRandomExpireTime(), TimeUnit.SECONDS);
+                    }
+                    return null;
+                }
+            });
+
+            userDTOList.addAll(dbQueryResult);
         }
 
-        return dbQueryResult.stream().collect(Collectors.toMap(UserDTO::getUserId, userDTO -> userDTO));
+        return userDTOList.stream().collect(Collectors.toMap(UserDTO::getUserId, userDTO -> userDTO));
+    }
+
+    //生成随机过期时间，单位：秒
+    private long createRandomExpireTime() {
+        return ThreadLocalRandom.current().nextLong(1000) + 60 * 30;//30min + 1000s
     }
 }
