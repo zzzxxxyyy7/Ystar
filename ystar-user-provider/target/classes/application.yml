@@ -32,3 +32,14 @@ dubbo:
     port: 9091
   provider:
     timeout: 5000
+
+ystar:
+  rmq:
+    producer:
+      name-srv: 139.224.188.112:9876
+      group-name: ${spring.application.name}
+      retry-times: 3
+      send-timeout: 3000
+    consumer:
+      name-srv: 139.224.188.112:9876
+      group-name: ${spring.application.name}

@@ -7,6 +7,7 @@ import com.ystar.user.provider.Domain.mapper.IUserMapper;
 import com.ystar.user.provider.Domain.po.UserPO;
 import com.ystar.user.provider.Service.IUserService;
 import jakarta.annotation.Resource;
+import org.apache.rocketmq.client.producer.MQProducer;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -15,7 +16,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import ystart.framework.redis.starter.key.UserProviderCacheKeyBuilder;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
@@ -31,6 +35,9 @@ public class UserServiceImpl extends ServiceImpl<IUserMapper, UserPO> implements
 
     @Resource
     private UserProviderCacheKeyBuilder userProviderCacheKeyBuilder;
+
+    @Resource
+    private MQProducer mqProducer;
 
     @Override
     public UserDTO getUserById(Long userId) {
@@ -53,6 +60,25 @@ public class UserServiceImpl extends ServiceImpl<IUserMapper, UserPO> implements
             return false;
         }
         iUserMapper.updateById(ConvertBeanUtils.convert(userDTO , UserPO.class));
+
+        // 更新完数据库，删除缓存
+        String key = userProviderCacheKeyBuilder.buildUserInfoKey(userDTO.getUserId());
+        redisTemplate.delete(key);
+
+        // TODO RocketMQ部署不上去 发送MQ，延迟双删
+//        Message message = new Message();
+//        // 设置消息内容
+//        message.setBody(JSON.toJSONString(userDTO).getBytes());
+//        // 绑定 Topic
+//        message.setTopic("user-update-cache");
+//        // 延迟级别、延迟一秒
+//        message.setDelayTimeLevel(1);
+//        // 发送消息
+//        try {
+//            mqProducer.send(message);
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
         return true;
     }
 
@@ -67,6 +93,7 @@ public class UserServiceImpl extends ServiceImpl<IUserMapper, UserPO> implements
 
     @Override
     public Map<Long, UserDTO> batchQueryUserInfo(List<Long> userIdList) {
+        // TODO 缓存雪崩解决，针对没在缓存的去查库，缓存穿透还未解决
         if (CollectionUtils.isEmpty(userIdList)) return new HashMap<>();
 //        userIdList = userIdList.stream().filter(id -> id > 10000).collect(Collectors.toList());
 //        if (CollectionUtils.isEmpty(userIdList)) return new HashMap<>();
