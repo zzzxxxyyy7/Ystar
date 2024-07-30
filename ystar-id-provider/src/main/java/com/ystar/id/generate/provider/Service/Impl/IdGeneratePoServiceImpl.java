@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -35,8 +36,8 @@ public class IdGeneratePoServiceImpl extends ServiceImpl<YstarIdGenerateConfigMa
      * 数据库 ID 分段实现器
      * 根据传入 id 值获取各个分段 ID 并且逐次递增
      */
-    private static Map<Integer , LocalSeqIdBO> localSeqIdBOMap = new ConcurrentHashMap<>();
-    private static Map<Integer , LocalUnSeqIdBO> localunSeqIdBOMap = new ConcurrentHashMap<>();
+    private static final Map<Integer , LocalSeqIdBO> localSeqIdBOMap = new ConcurrentHashMap<>();
+    private static final Map<Integer , LocalUnSeqIdBO> localunSeqIdBOMap = new ConcurrentHashMap<>();
 
     /**
      * 初始化本地 Id 管理器全表查询使用
@@ -52,7 +53,7 @@ public class IdGeneratePoServiceImpl extends ServiceImpl<YstarIdGenerateConfigMa
     /**
      * 异步更新用线程池
      */
-    private static ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
+    private static final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
             8,
             16,
             3,
@@ -68,8 +69,8 @@ public class IdGeneratePoServiceImpl extends ServiceImpl<YstarIdGenerateConfigMa
     /**
      * 避免扩容任务重复执行，
      */
-    private static Map<Integer , Semaphore> semaphoreMap = new ConcurrentHashMap<>();
-    private static Map<Integer , Semaphore> semaphoreMapButNotSeq = new ConcurrentHashMap<>();
+    private static final Map<Integer , Semaphore> semaphoreMap = new ConcurrentHashMap<>();
+    private static final Map<Integer , Semaphore> semaphoreMapButNotSeq = new ConcurrentHashMap<>();
 
     /**
      * 有序 ID 获取
@@ -78,6 +79,7 @@ public class IdGeneratePoServiceImpl extends ServiceImpl<YstarIdGenerateConfigMa
      */
     @Override
     public Long getSeqId(Integer id) {
+        LOGGER.info("{} 发生了一次有序 ID 请求" , LocalDateTime.now());
         if (id == null) {
             LOGGER.info("获取有序分布式ID参数错误，id is 不存在" );
             return null;
@@ -115,6 +117,7 @@ public class IdGeneratePoServiceImpl extends ServiceImpl<YstarIdGenerateConfigMa
      */
     @Override
     public Long getUnSeqId(Integer id) {
+        LOGGER.info("{} 发生了一次无序 ID 请求" , LocalDateTime.now());
         if (id == null) {
             LOGGER.info("获取有序分布式ID参数错误，id is 不存在" );
             return null;

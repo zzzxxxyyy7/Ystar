@@ -1,5 +1,6 @@
 package com.ystar.user.api.Controller;
 
+import com.ystar.id.generate.interfaces.IdGenerateRpc;
 import com.ystar.user.dto.UserDTO;
 import com.ystar.user.interfaces.IUserRpc;
 import org.apache.dubbo.config.annotation.DubboReference;
@@ -18,6 +19,9 @@ public class UserController {
     
     @DubboReference
     private IUserRpc userRpc;
+
+    @DubboReference
+    private IdGenerateRpc idGenerateRpc;
     
     @GetMapping("/getUserInfo")
     public UserDTO dubbo(@RequestParam Long userId) {
@@ -33,10 +37,11 @@ public class UserController {
     }
 
     @GetMapping("insertOne")
-    public boolean insertUser(@RequestParam Long userId) {
+    public boolean insertUser(@RequestParam String nickName) {
         UserDTO userDTO = new UserDTO();
-        userDTO.setUserId(userId);
-        userDTO.setNickName("Ystar");
+        // 用户注册所用参数为1
+        userDTO.setUserId(idGenerateRpc.getSeqId(1));
+        userDTO.setNickName(nickName);
         userDTO.setSex(1);
         return userRpc.insertOne(userDTO);
     }
