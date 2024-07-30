@@ -14,7 +14,7 @@ import java.util.Date;
  */
 @TableName(value ="t_user_tag")
 @Data
-public class TUserTagPO implements Serializable {
+public class UserTagPO implements Serializable {
     /**
      * 用户id
      */

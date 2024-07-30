@@ -2,9 +2,9 @@ package com.ystar.user.provider.Service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.ystar.user.constant.UserTagsEnum;
-import com.ystar.user.provider.Domain.po.TUserTagPO;
+import com.ystar.user.provider.Domain.po.UserTagPO;
 
-public interface IUserTagService extends IService<TUserTagPO> {
+public interface IUserTagService extends IService<UserTagPO> {
     /**
      * 设置标签
      *
