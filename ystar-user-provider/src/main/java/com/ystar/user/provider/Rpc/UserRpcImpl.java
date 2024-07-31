@@ -9,6 +9,9 @@ import org.apache.dubbo.config.annotation.DubboService;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 用户增删改查服务
+ */
 @DubboService
 public class UserRpcImpl implements IUserRpc {
 

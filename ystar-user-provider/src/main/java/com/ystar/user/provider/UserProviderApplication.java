@@ -10,6 +10,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 @EnableDubbo
 @EnableDiscoveryClient
 public class UserProviderApplication {
+
     public static void main(String[] args) {
         SpringApplication springApplication = new SpringApplication(UserProviderApplication.class);
         springApplication.setWebApplicationType(WebApplicationType.NONE); //Dubbo不使用tomcat，使用netty

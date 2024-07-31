@@ -1,45 +1,45 @@
-spring:
-  application:
-    name: ystar-user-provider
-  datasource:
-    driver-class-name: org.apache.shardingsphere.driver.ShardingSphereDriver
-    url: jdbc:shardingsphere:classpath:ystar-db-sharding.yaml
-    hikari:
-      pool-name: ystar-user-pool
-      minimum-idle: 15
-      maximum-pool-size: 300
-      connection-init-sql: select 1
-      connection-timeout: 4000
-      max-lifetime: 60000
-  data:
-    redis:
-      port: 6379
-      host: 139.224.188.112
-      lettuce:
-        pool:
-          min-idle: 10
-          max-active: 50
-          max-idle: 20
-
-# Dubbo配置
-dubbo:
-  application:
-    name: ${spring.application.name}
-  registry:
-    address: nacos://139.224.188.112:8848
-  protocol:
-    name: dubbo
-    port: 9091
-  provider:
-    timeout: 5000
-
-ystar:
-  rmq:
-    producer:
-      name-srv: 139.224.188.112:9876
-      group-name: ${spring.application.name}
-      retry-times: 3
-      send-timeout: 3000
-    consumer:
-      name-srv: 139.224.188.112:9876
-      group-name: ${spring.application.name}
+#spring:
+#  application:
+#    name: ystar-user-provider
+#  datasource:
+#    driver-class-name: org.apache.shardingsphere.driver.ShardingSphereDriver
+#    url: jdbc:shardingsphere:classpath:ystar-db-sharding.yaml
+#    hikari:
+#      pool-name: ystar-user-pool
+#      minimum-idle: 15
+#      maximum-pool-size: 300
+#      connection-init-sql: select 1
+#      connection-timeout: 4000
+#      max-lifetime: 60000
+#  data:
+#    redis:
+#      port: 6379
+#      host: 139.224.188.112
+#      lettuce:
+#        pool:
+#          min-idle: 10
+#          max-active: 50
+#          max-idle: 20
+#
+## Dubbo配置
+#dubbo:
+#  application:
+#    name: ${spring.application.name}
+#  registry:
+#    address: nacos://139.224.188.112:8848
+#  protocol:
+#    name: dubbo
+#    port: 9091
+#  provider:
+#    timeout: 5000
+#
+#ystar:
+#  rmq:
+#    producer:
+#      name-srv: 139.224.188.112:9876
+#      group-name: ${spring.application.name}
+#      retry-times: 3
+#      send-timeout: 3000
+#    consumer:
+#      name-srv: 139.224.188.112:9876
+#      group-name: ${spring.application.name}
