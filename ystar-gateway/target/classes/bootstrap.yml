@@ -1,0 +1,17 @@
+server:
+  port: 8088
+spring:
+  application:
+    name: ystar-gateway
+  profiles:
+    active: dev
+  cloud:
+    nacos:
+      server-addr: 139.224.188.112:8848
+      config:
+        file-extension: yaml
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty.http.client: DEBUG
