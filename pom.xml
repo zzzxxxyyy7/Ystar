@@ -19,6 +19,8 @@
       <module>ystar-id-generate-interface</module>
       <module>ystar-id-provider</module>
       <module>ystar-gateway</module>
+      <module>ystar-msg-provider</module>
+      <module>ystar-msg-interface</module>
   </modules>
 
     <parent>
