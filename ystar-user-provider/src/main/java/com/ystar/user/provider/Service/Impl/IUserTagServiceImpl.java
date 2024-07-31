@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.ystar.common.utils.ConvertBeanUtils;
 import com.ystar.user.constant.UserTagsEnum;
 import com.ystar.user.dto.UserTagDTO;
-import com.ystar.user.provider.Domain.mapper.TUserTagMapper;
+import com.ystar.user.provider.Domain.mapper.IUserTagMapper;
 import com.ystar.user.provider.Domain.po.UserTagPO;
 import com.ystar.user.provider.Service.IUserTagService;
 import com.ystar.user.provider.Utils.TagFactors;
@@ -20,11 +20,11 @@ import ystart.framework.redis.starter.key.UserProviderCacheKeyBuilder;
 import java.util.concurrent.TimeUnit;
 
 @Service
-public class IUserTagServiceImpl extends ServiceImpl<TUserTagMapper, UserTagPO> implements IUserTagService {
+public class IUserTagServiceImpl extends ServiceImpl<IUserTagMapper, UserTagPO> implements IUserTagService {
     private static final Logger LOGGER = LoggerFactory.getLogger(IUserTagServiceImpl.class);
 
     @Resource
-    private TUserTagMapper tUserTagMapper;
+    private IUserTagMapper iUserTagMapper;
 
     @Resource
     private TagFactors tagFactors;
@@ -41,7 +41,7 @@ public class IUserTagServiceImpl extends ServiceImpl<TUserTagMapper, UserTagPO> 
     @Override
     public boolean setTag(Long userId, UserTagsEnum userTagsEnum) {
         // 原先没有，现在有，设置成功，直接返回 True
-        boolean updateStatus = tUserTagMapper.setTag(userId, userTagsEnum.getFieldName(), userTagsEnum.getTag()) > 0;
+        boolean updateStatus = iUserTagMapper.setTag(userId, userTagsEnum.getFieldName(), userTagsEnum.getTag()) > 0;
         if (updateStatus) {
             String userTagKey = userProviderCacheKeyBuilder.buildUserTagKey(userId);
             redisTemplate.delete(userTagKey);
@@ -50,7 +50,7 @@ public class IUserTagServiceImpl extends ServiceImpl<TUserTagMapper, UserTagPO> 
 
         // 判断是否有记录
         // 先判断，只需要走一次数据库，不需要走俩次缓存，否则就是俩次缓存 + 一次数据库
-        UserTagPO tUserTagPO = tUserTagMapper.selectById(userId);
+        UserTagPO tUserTagPO = iUserTagMapper.selectById(userId);
         /*
           失败原因有二
           一、原先就没有这个用户，下面需要初始化设置
@@ -71,9 +71,9 @@ public class IUserTagServiceImpl extends ServiceImpl<TUserTagMapper, UserTagPO> 
             if (acquireResult) {
                 UserTagPO newTUserTagPO = new UserTagPO();
                 newTUserTagPO.setUserId(userId);
-                tUserTagMapper.insert(newTUserTagPO);
+                iUserTagMapper.insert(newTUserTagPO);
                 // 必须先保留结果再释放锁
-                updateStatus = tUserTagMapper.setTag(userId, userTagsEnum.getFieldName() , userTagsEnum.getTag()) > 0;
+                updateStatus = iUserTagMapper.setTag(userId, userTagsEnum.getFieldName() , userTagsEnum.getTag()) > 0;
             } else return false; // 本身就不是第一个请求了，已经有一个线程发送数据库请求了，后续线程直接失败
         } catch (Exception e) {
             throw new RuntimeException("设置 Tag 获取 RLock 分布式锁失败");
@@ -87,10 +87,10 @@ public class IUserTagServiceImpl extends ServiceImpl<TUserTagMapper, UserTagPO> 
 
     @Override
     public boolean cancelTag(Long userId, UserTagsEnum userTagsEnum) {
-        boolean cancelStatus = tUserTagMapper.cancelTag(userId , userTagsEnum.getFieldName() , userTagsEnum.getTag()) > 0;
+        boolean cancelStatus = iUserTagMapper.cancelTag(userId , userTagsEnum.getFieldName() , userTagsEnum.getTag()) > 0;
         if (!cancelStatus) return false;
         // 双删判断
-        int doubleAcquire = tUserTagMapper.cancelDoubleAcquire(userId);
+        int doubleAcquire = iUserTagMapper.cancelDoubleAcquire(userId);
         if (doubleAcquire > 0) LOGGER.info("用户标签双删触发，userId is {}" , userId);
 
         String userTagKey = userProviderCacheKeyBuilder.buildUserTagKey(userId);
@@ -130,7 +130,7 @@ public class IUserTagServiceImpl extends ServiceImpl<TUserTagMapper, UserTagPO> 
         if (userTagDTO != null) return userTagDTO;
 
         // 不存在，查数据库
-        UserTagPO tUserTagPO = tUserTagMapper.selectById(userId);
+        UserTagPO tUserTagPO = iUserTagMapper.selectById(userId);
         // TODO 缓存穿透后续补全，数据库也不存在，返回空
         if (tUserTagPO == null) return null;
 

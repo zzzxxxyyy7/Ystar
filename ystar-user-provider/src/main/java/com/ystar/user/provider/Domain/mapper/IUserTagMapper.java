@@ -13,7 +13,7 @@ import org.apache.ibatis.annotations.Update;
 * @Entity com.ystar.user.provider.Domain.po.TUserTag00
 */
 @Mapper
-public interface TUserTagMapper extends BaseMapper<UserTagPO> {
+public interface IUserTagMapper extends BaseMapper<UserTagPO> {
 
     /**
      * 必须有用户存在，而且没有这个标签，才能设置成功

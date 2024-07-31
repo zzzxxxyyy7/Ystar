@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
-public class UserServiceImpl extends ServiceImpl<IUserMapper, UserPO> implements IUserService {
+public class IUserServiceImpl extends ServiceImpl<IUserMapper, UserPO> implements IUserService {
     @Resource
     private IUserMapper iUserMapper;
 

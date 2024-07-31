@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/user")
-public class UserController {
+public class UserInfoController {
     
     @DubboReference
     private IUserRpc userRpc;
