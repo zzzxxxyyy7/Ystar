@@ -79,17 +79,6 @@
             <groupId>org.Rhss</groupId>
             <artifactId>ystar-framework-web-starter</artifactId>
             <version>1.0-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.Rhss</groupId>
-                    <artifactId>ystar-framework-redis-starter</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
         </dependency>
     </dependencies>
 </project>

@@ -116,7 +116,6 @@
             <groupId>org.Rhss</groupId>
             <artifactId>ystar-id-generate-interface</artifactId>
             <version>1.0-SNAPSHOT</version>
-            <scope>compile</scope>
         </dependency>
 
         <dependency>

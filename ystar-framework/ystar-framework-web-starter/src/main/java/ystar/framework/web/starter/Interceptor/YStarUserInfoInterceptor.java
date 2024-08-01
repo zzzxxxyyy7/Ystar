@@ -21,7 +21,7 @@ public class YStarUserInfoInterceptor implements HandlerInterceptor {
         //参数判断，userID是否为空
         //可能走的是白名单url
         if (StringUtils.isEmpty(userIdStr)) {
-            System.out.println("白名单请求：放行");
+            System.out.println("白名单请求: 放行,不需要用户信息");
             return true;
         }
         //如果userId不为空，则把它放在线程本地变量里面去
