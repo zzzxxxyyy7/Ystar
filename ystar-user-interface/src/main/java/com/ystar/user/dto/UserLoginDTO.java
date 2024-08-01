@@ -16,12 +16,9 @@ public class UserLoginDTO implements Serializable {
 
     private Long userId;
 
-    private String token;
-
-    public static UserLoginDTO LoginSuccess(Long userId, String token) {
+    public static UserLoginDTO LoginSuccess(Long userId) {
         UserLoginDTO userLoginDTO = new UserLoginDTO();
         userLoginDTO.setLoginStatus(true);
-        userLoginDTO.setToken(token);
         userLoginDTO.setUserId(userId);
         return userLoginDTO;
     }
@@ -29,7 +26,6 @@ public class UserLoginDTO implements Serializable {
     public static UserLoginDTO LoginError(String desc) {
         UserLoginDTO userLoginDTO = new UserLoginDTO();
         userLoginDTO.setDesc(desc);
-        userLoginDTO.setToken("");
         userLoginDTO.setLoginStatus(false);
         return userLoginDTO;
     }

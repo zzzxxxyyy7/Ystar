@@ -69,7 +69,7 @@ public class IUserPhoneServiceImpl extends ServiceImpl<IUserPhoneMapper, TUserPh
 
         // 注册过，刷新 Token 直接登录
         if (userPhoneDTO != null) {
-            return UserLoginDTO.LoginSuccess(userPhoneDTO.getUserId() , iAccountTokenRPC.createAndSaveLoginToken(userPhoneDTO.getUserId()));
+            return UserLoginDTO.LoginSuccess(userPhoneDTO.getUserId());
         }
 
         // 没有注册过，就注册
@@ -137,7 +137,7 @@ public class IUserPhoneServiceImpl extends ServiceImpl<IUserPhoneMapper, TUserPh
         iUserPhoneMapper.insert(userPhonePO);
         // 需要删除空值对象，因为我们查询有无对应用户的时候，缓存了空对象，这里我们创建了就可以删除了
         redisTemplate.delete(userProviderCacheKeyBuilder.buildUserPhoneObjKey(phone));
-        return UserLoginDTO.LoginSuccess(userId, iAccountTokenRPC.createAndSaveLoginToken(userId));
+        return UserLoginDTO.LoginSuccess(userId);
     }
 
     /**

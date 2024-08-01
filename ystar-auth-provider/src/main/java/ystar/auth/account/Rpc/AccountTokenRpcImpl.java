@@ -3,7 +3,6 @@ package ystar.auth.account.Rpc;
 import jakarta.annotation.Resource;
 import org.apache.dubbo.config.annotation.DubboService;
 import ystar.auth.account.Service.IAccountTokenService;
-import ystar.auth.account.Service.Impl.AccountTokenServiceImpl;
 import ystar.auth.account.interfaces.IAccountTokenRPC;
 
 @DubboService
