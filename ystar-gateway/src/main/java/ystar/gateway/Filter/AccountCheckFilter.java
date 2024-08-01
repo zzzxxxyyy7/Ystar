@@ -1,6 +1,5 @@
 package ystar.gateway.Filter;
 
-import com.ystar.common.Enums.GatewayHeaderEnum;
 import io.micrometer.common.util.StringUtils;
 import jakarta.annotation.Resource;
 import org.apache.dubbo.config.annotation.DubboReference;
@@ -20,11 +19,8 @@ import reactor.core.publisher.Mono;
 import ystar.auth.account.interfaces.IAccountTokenRPC;
 import ystar.gateway.Properties.GatewayApplicationProperties;
 
-import java.net.InetSocketAddress;
 import java.util.List;
 
-import static io.netty.handler.codec.http.cookie.CookieHeaderNames.MAX_AGE;
-import static org.springframework.web.cors.CorsConfiguration.ALL;
 
 
 @Component
@@ -42,6 +38,8 @@ public class AccountCheckFilter implements GlobalFilter, Ordered {
         // 获取请求url，判断是否为空，如果为空则返回请求不通过
         ServerHttpRequest request = exchange.getRequest();
         String reqUrl = request.getURI().getPath();
+
+        System.out.println(request.getMethod());
 
         // 动态设置 Access-Control-Allow-Origin
         ServerHttpResponse response = exchange.getResponse();

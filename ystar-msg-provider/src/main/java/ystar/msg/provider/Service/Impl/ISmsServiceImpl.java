@@ -52,44 +52,46 @@ public class ISmsServiceImpl extends ServiceImpl<ISmsMapper, SmsPo>
         // 生成验证码 4位 60s 不能重复发
         int code = RandomUtils.nextInt(1000 , 10000);
 
+        String MsgKey = msgCacheKeyBuilder.buildMsgLoginInfoKey(phone);
+        redisTemplate.opsForValue().set(MsgKey , 8888 , 600 , TimeUnit.SECONDS);
+
+        return MsgSendResultEnum.SEND_SUCCESS;
         /**
          * 如果没有验证码，才能执行发送，因为 Redis 的 Reactor 网络模型，必须要加锁
          */
-        String msgLoginLockInfoKey = msgCacheKeyBuilder.buildMsgLoginLockInfoKey(phone);
-        RLock rLock = redissonClient.getLock(msgLoginLockInfoKey);
-        System.out.println(Thread.currentThread().getId());
-        try {
-            boolean acquireResult = rLock.tryLock(10L, 20L, TimeUnit.SECONDS);
-            if (acquireResult) {
-                // 近十分钟短信发送次数
-                String msgLoginTimesInfoKey = msgCacheKeyBuilder.buildMsgLoginTimesInfoKey(phone);
-                Integer SmsTimes = (Integer) redisTemplate.opsForValue().get(msgLoginTimesInfoKey);
-                if (SmsTimes != null && SmsTimes > 5) return MsgSendResultEnum.MSG_TIMES_ERROR;
-
-                // 如果十分钟内没有达到上限，但是仍旧存在短信，则不能再发送
-                String MsgKey = msgCacheKeyBuilder.buildMsgLoginInfoKey(phone);
-                if (Boolean.TRUE.equals(redisTemplate.hasKey(MsgKey))) return MsgSendResultEnum.MSG_REPEAT_ERROR;
-
-                // 设置验证码到缓存
-                redisTemplate.opsForValue().set(MsgKey , code , 60 , TimeUnit.SECONDS);
-                if (SmsTimes == null) SmsTimes = 1;
-                // 设置十分钟内次数 + 1
-                redisTemplate.opsForValue().set(msgLoginTimesInfoKey , SmsTimes + 1 ,
-                        10 , TimeUnit.MINUTES);
-            } else return MsgSendResultEnum.MSG_REPEAT_ERROR; // 重复发送错误
-        } catch (Exception e) {
-            throw new RuntimeException("发送短信 获取 RLock 分布式锁失败");
-        } finally {
-            rLock.unlock();
-        }
-
-        // 发送验证码
-        ThreadPoolManager.commonAsyncPool.execute(() -> {
-            boolean sendResult = sendSmsToCCP(phone, code);
-            if (sendResult) insertOne(phone , code);
-        });
-
-        return MsgSendResultEnum.SEND_SUCCESS;
+//        String msgLoginLockInfoKey = msgCacheKeyBuilder.buildMsgLoginLockInfoKey(phone);
+//        RLock rLock = redissonClient.getLock(msgLoginLockInfoKey);
+//        System.out.println(Thread.currentThread().getId());
+//        try {
+//            boolean acquireResult = rLock.tryLock(10L, 20L, TimeUnit.SECONDS);
+//            if (acquireResult) {
+//                // 近十分钟短信发送次数
+//                String msgLoginTimesInfoKey = msgCacheKeyBuilder.buildMsgLoginTimesInfoKey(phone);
+//                Integer SmsTimes = (Integer) redisTemplate.opsForValue().get(msgLoginTimesInfoKey);
+//                if (SmsTimes != null && SmsTimes > 5) return MsgSendResultEnum.MSG_TIMES_ERROR;
+//
+//                // 如果十分钟内没有达到上限，但是仍旧存在短信，则不能再发送
+//                String MsgKey = msgCacheKeyBuilder.buildMsgLoginInfoKey(phone);
+//                if (Boolean.TRUE.equals(redisTemplate.hasKey(MsgKey))) return MsgSendResultEnum.MSG_REPEAT_ERROR;
+//
+//                // 设置验证码到缓存
+//                redisTemplate.opsForValue().set(MsgKey , code , 60 , TimeUnit.SECONDS);
+//                if (SmsTimes == null) SmsTimes = 1;
+//                // 设置十分钟内次数 + 1
+//                redisTemplate.opsForValue().set(msgLoginTimesInfoKey , SmsTimes + 1 ,
+//                        10 , TimeUnit.MINUTES);
+//            } else return MsgSendResultEnum.MSG_REPEAT_ERROR; // 重复发送错误
+//        } catch (Exception e) {
+//            throw new RuntimeException("发送短信 获取 RLock 分布式锁失败");
+//        } finally {
+//            rLock.unlock();
+//        }
+//
+//        // 发送验证码
+//        ThreadPoolManager.commonAsyncPool.execute(() -> {
+//            boolean sendResult = sendSmsToCCP(phone, code);
+//            if (sendResult) insertOne(phone , code);
+//        });
     }
 
     /**

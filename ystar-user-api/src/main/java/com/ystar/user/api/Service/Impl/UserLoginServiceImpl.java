@@ -7,11 +7,13 @@ import com.ystar.user.api.Vo.UserLoginVO;
 import com.ystar.user.dto.UserLoginDTO;
 import com.ystar.user.interfaces.IUserPhoneRPC;
 import io.micrometer.common.util.StringUtils;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.web.server.Cookie;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 import ystar.auth.account.interfaces.IAccountTokenRPC;
 import ystar.msg.Constants.MsgSendResultEnum;
@@ -71,19 +73,16 @@ public class UserLoginServiceImpl implements IUserLoginService {
         // 封装token到cookie返回
         UserLoginDTO userLoginDTO = userPhoneRpc.login(phone);
         String token = accountTokenRPC.createAndSaveLoginToken(userLoginDTO.getUserId());
-        Cookie cookie = new Cookie("ystar", token);
-        // 设置在哪个域名的访问下，才携带此cookie进行访问
-        // https://app.qiyu.live.com//
-        // https://api.qiyu.live.com//
-        // 取公共部分的顶级域名，如果在hosts中自定义域名有跨域限制无法解决的话就注释掉setDomain和setPath
-        // cookie.setDomain("qiyu.live.com");
-        // 这里我们不设置域名，就设置为localhost
-        cookie.setDomain("localhost");
-        // 域名下的所有路径
-        cookie.setPath("/");
-        // 设置cookie过期时间，单位为秒，设置为token的过期时间，30天
-        cookie.setMaxAge(30 * 24 * 3600);
-        response.addCookie(cookie);
+
+        ResponseCookie responseCookie = ResponseCookie.from("ystar", token)
+                .maxAge(30 * 24 * 3600)
+                .secure(true)
+                .domain("localhost")
+                .path("/")
+                .sameSite(Cookie.SameSite.NONE.attributeValue())
+                .build();
+
+        response.setHeader(HttpHeaders.SET_COOKIE , responseCookie.toString());
         return WebResponseVO.success(BeanUtil.copyProperties(userLoginDTO, UserLoginVO.class));
     }
 }
