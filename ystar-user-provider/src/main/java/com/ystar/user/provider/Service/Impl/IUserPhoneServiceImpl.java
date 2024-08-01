@@ -14,14 +14,13 @@ import com.ystar.user.provider.Service.IUserService;
 import com.ystar.user.provider.Service.IUserPhoneService;
 import com.ystar.user.provider.Domain.mapper.IUserPhoneMapper;
 import com.ystar.user.provider.Utils.DESUtils;
-import com.ystar.user.provider.Utils.JwtUtils;
 import jakarta.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import ystart.framework.redis.starter.id.RedisSeqIdHelper;
+import ystar.auth.account.interfaces.IAccountTokenRPC;
 import ystart.framework.redis.starter.key.UserProviderCacheKeyBuilder;
 
 import java.util.Collections;
@@ -53,8 +52,8 @@ public class IUserPhoneServiceImpl extends ServiceImpl<IUserPhoneMapper, TUserPh
     @DubboReference
     private IdGenerateRpc idGenerateRpc;
 
-    @Resource
-    private RedisSeqIdHelper redisSeqIdHelper;
+    @DubboReference
+    private IAccountTokenRPC iAccountTokenRPC;
 
     private static final String SuccessPhoneFormat = "手机号格式正确";
 
@@ -84,7 +83,7 @@ public class IUserPhoneServiceImpl extends ServiceImpl<IUserPhoneMapper, TUserPh
 
         // 注册过，刷新 Token 直接登录
         if (userPhoneDTO != null) {
-            return UserLoginDTO.LoginSuccess(userPhoneDTO.getUserId() , JwtUtils.generateToken(userPhoneDTO));
+            return UserLoginDTO.LoginSuccess(userPhoneDTO.getUserId() , iAccountTokenRPC.createAndSaveLoginToken(userPhoneDTO.getUserId()));
         }
 
         // 没有注册过，就注册
@@ -126,7 +125,6 @@ public class IUserPhoneServiceImpl extends ServiceImpl<IUserPhoneMapper, TUserPh
                         .last("limit 1"));
         String redisKey = userProviderCacheKeyBuilder.buildUserPhoneObjKey(phone);
         if (tUserPhonePo == null) {
-            // TODO 缓存击穿
             redisTemplate.opsForValue().set(redisKey , new TUserPhonePo() , 30 , TimeUnit.MINUTES);
             return null;
         }
@@ -134,11 +132,6 @@ public class IUserPhoneServiceImpl extends ServiceImpl<IUserPhoneMapper, TUserPh
         return ConvertBeanUtils.convert(tUserPhonePo , UserPhoneDTO.class);
     }
 
-    /**
-     * 注册方法
-     * @param phone
-     * @return
-     */
     /**
      * 注册新手机号用户
      *
@@ -158,7 +151,7 @@ public class IUserPhoneServiceImpl extends ServiceImpl<IUserPhoneMapper, TUserPh
         iUserPhoneMapper.insert(userPhonePO);
         // 需要删除空值对象，因为我们查询有无对应用户的时候，缓存了空对象，这里我们创建了就可以删除了
         redisTemplate.delete(userProviderCacheKeyBuilder.buildUserPhoneObjKey(phone));
-        return UserLoginDTO.LoginSuccess(userId, JwtUtils.generateToken(ConvertBeanUtils.convert(userPhonePO , UserPhoneDTO.class)));
+        return UserLoginDTO.LoginSuccess(userId, iAccountTokenRPC.createAndSaveLoginToken(userId));
     }
 
     /**

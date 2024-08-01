@@ -21,6 +21,8 @@
       <module>ystar-gateway</module>
       <module>ystar-msg-provider</module>
       <module>ystar-msg-interface</module>
+      <module>ystar-auth-interface</module>
+      <module>ystar-auth-provider</module>
   </modules>
 
     <parent>

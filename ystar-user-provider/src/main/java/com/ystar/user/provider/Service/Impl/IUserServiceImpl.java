@@ -36,9 +36,6 @@ public class IUserServiceImpl extends ServiceImpl<IUserMapper, UserPO> implement
     @Resource
     private UserProviderCacheKeyBuilder userProviderCacheKeyBuilder;
 
-    @Resource
-    private MQProducer mqProducer;
-
     @Override
     public UserDTO getUserById(Long userId) {
         if(userId == null) return null;
@@ -65,7 +62,7 @@ public class IUserServiceImpl extends ServiceImpl<IUserMapper, UserPO> implement
         String key = userProviderCacheKeyBuilder.buildUserInfoKey(userDTO.getUserId());
         redisTemplate.delete(key);
 
-        // TODO RocketMQ部署不上去 发送MQ，延迟双删
+        // TODO RocketMQ部署不上去    发送MQ，延迟双删
 //        Message message = new Message();
 //        // 设置消息内容
 //        message.setBody(JSON.toJSONString(userDTO).getBytes());

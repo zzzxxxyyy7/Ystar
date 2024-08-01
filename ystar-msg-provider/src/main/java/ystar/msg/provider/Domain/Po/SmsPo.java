@@ -16,7 +16,7 @@ import lombok.Data;
  */
 @TableName(value ="t_sms")
 @Data
-public class TSms implements Serializable {
+public class SmsPo implements Serializable {
     /**
      * 主键id
      */

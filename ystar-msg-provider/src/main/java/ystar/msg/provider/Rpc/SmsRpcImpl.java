@@ -5,14 +5,14 @@ import org.apache.dubbo.config.annotation.DubboService;
 import ystar.msg.Constants.MsgSendResultEnum;
 import ystar.msg.Dto.MsgCheckDTO;
 import ystar.msg.Interfaces.ISmsRpc;
-import ystar.msg.provider.Service.TSmsService;
+import ystar.msg.provider.Service.ISmsService;
 
 
 @DubboService
 public class SmsRpcImpl implements ISmsRpc {
 
     @Resource
-    private TSmsService smsService;
+    private ISmsService smsService;
 
     @Override
     public MsgSendResultEnum sendLoginCode(String phone) {

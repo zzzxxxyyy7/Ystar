@@ -1,20 +1,17 @@
-package com.ystar.user.provider.Utils;
+package ystar.auth.account.Utils;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
-import com.ystar.user.dto.UserPhoneDTO;
-import com.ystar.user.provider.Domain.po.TUserPhonePo;
-import com.ystar.user.provider.Domain.po.UserPO;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class JwtUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(JwtUtils.class);
@@ -59,31 +56,28 @@ public class JwtUtils {
     }
 
     /**
-     * 从token中获取登录用户名
+     * 从token中获取登录用户ID
      */
-    public static long getUserNameFromToken(String token) {
-        String userId;
+    public static Long getUserIdFromToken(String token) {
+        Long userId;
         try {
             Claims claims = getClaimsFromToken(token);
-            userId = claims.getSubject();
+            userId = Long.valueOf(claims.getSubject());
         } catch (Exception e) {
             userId = null;
         }
-        if (userId != null) {
-            return Long.parseLong(userId);
-        }
-        return 0;
+        return userId;
     }
 
     /**
      * 验证token是否还有效
      *
-     * @param token       客户端传入的token
-     * @param userDetails 从数据库中查询出来的用户信息
+     * @param token  客户端传入的token
+     * @param userId 从数据库中查询出来的用户信息
      */
-    public static boolean validateToken(String token, UserPO userDetails) {
-        long userId = getUserNameFromToken(token);
-        return userId == userDetails.getUserId() && !isTokenExpired(token);
+    public static boolean validateToken(String token, Long userId) {
+        Long userIdFromToken = getUserIdFromToken(token);
+        return userIdFromToken.equals(userId) && !isTokenExpired(token);
     }
 
     /**
@@ -105,9 +99,9 @@ public class JwtUtils {
     /**
      * 根据用户信息生成token
      */
-    public static String generateToken(UserPhoneDTO userPhoneDTO) {
+    public static String generateToken(Long userId) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put(CLAIM_KEY_USERPHONE, userPhoneDTO.getPhone());
+        claims.put(CLAIM_KEY_USERPHONE, userId);
         claims.put(CLAIM_KEY_CREATED, new Date());
         return generateToken(claims);
     }
@@ -153,9 +147,6 @@ public class JwtUtils {
         Date created = claims.get(CLAIM_KEY_CREATED, Date.class);
         Date refreshDate = new Date();
         //刷新时间在创建时间的指定时间内
-        if(refreshDate.after(created)&&refreshDate.before(DateUtil.offsetSecond(created, 1800))){
-            return true;
-        }
-        return false;
+        return refreshDate.after(created) && refreshDate.before(DateUtil.offsetSecond(created, 1800));
     }
 }
