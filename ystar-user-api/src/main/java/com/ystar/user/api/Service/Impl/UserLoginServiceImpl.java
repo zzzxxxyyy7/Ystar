@@ -83,8 +83,6 @@ public class UserLoginServiceImpl implements IUserLoginService {
         cookie.setPath("/");
         // 设置cookie过期时间，单位为秒，设置为token的过期时间，30天
         cookie.setMaxAge(30 * 24 * 3600);
-        // 加上它，不然浏览器不会记录cookie
-        response.setHeader("Access-Control-Allow-Credentials", "true");
         response.addCookie(cookie);
         return WebResponseVO.success(BeanUtil.copyProperties(userLoginDTO, UserLoginVO.class));
     }

@@ -10,7 +10,9 @@ import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpCookie;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.server.ServerWebExchange;
@@ -20,6 +22,9 @@ import ystar.gateway.Properties.GatewayApplicationProperties;
 
 import java.net.InetSocketAddress;
 import java.util.List;
+
+import static io.netty.handler.codec.http.cookie.CookieHeaderNames.MAX_AGE;
+import static org.springframework.web.cors.CorsConfiguration.ALL;
 
 
 @Component
@@ -36,9 +41,18 @@ public class AccountCheckFilter implements GlobalFilter, Ordered {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         // 获取请求url，判断是否为空，如果为空则返回请求不通过
         ServerHttpRequest request = exchange.getRequest();
-        // 获取请求 IP
-        InetSocketAddress localAddress = request.getLocalAddress();
         String reqUrl = request.getURI().getPath();
+
+        // 动态设置 Access-Control-Allow-Origin
+        ServerHttpResponse response = exchange.getResponse();
+        HttpHeaders headers = response.getHeaders();
+        headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, request.getHeaders().getOrigin());
+        headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, "POST, GET");
+        headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
+        headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS, "*");
+        headers.add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, "*");
+        headers.add(HttpHeaders.ACCESS_CONTROL_MAX_AGE, "3600");
+
         if (StringUtils.isEmpty(reqUrl)) return Mono.empty();
 
         // 根据url，判断是否存在于url白名单中，如果存在，则不对token进行校验

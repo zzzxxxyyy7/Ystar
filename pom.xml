@@ -23,6 +23,7 @@
       <module>ystar-msg-interface</module>
       <module>ystar-auth-interface</module>
       <module>ystar-auth-provider</module>
+      <module>ystar-framework-web-starter</module>
   </modules>
 
     <parent>
