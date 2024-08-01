@@ -57,8 +57,9 @@ public class ISmsServiceImpl extends ServiceImpl<ISmsMapper, SmsPo>
          */
         String msgLoginLockInfoKey = msgCacheKeyBuilder.buildMsgLoginLockInfoKey(phone);
         RLock rLock = redissonClient.getLock(msgLoginLockInfoKey);
+        System.out.println(Thread.currentThread().getId());
         try {
-            boolean acquireResult = rLock.tryLock(1L, 2L, TimeUnit.SECONDS);
+            boolean acquireResult = rLock.tryLock(10L, 20L, TimeUnit.SECONDS);
             if (acquireResult) {
                 // 近十分钟短信发送次数
                 String msgLoginTimesInfoKey = msgCacheKeyBuilder.buildMsgLoginTimesInfoKey(phone);
