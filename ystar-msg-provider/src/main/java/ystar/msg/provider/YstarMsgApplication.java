@@ -14,7 +14,6 @@ import ystar.msg.provider.Service.Impl.ISmsServiceImpl;
 @EnableDubbo
 public class YstarMsgApplication {
 
-
     public static void main(String[] args) {
         SpringApplication springApplication = new SpringApplication(YstarMsgApplication.class);
         springApplication.setWebApplicationType(WebApplicationType.NONE);

@@ -49,8 +49,6 @@ public class ISmsServiceImpl extends ServiceImpl<ISmsMapper, SmsPo>
 
     @Override
     public MsgSendResultEnum sendLoginCode(String phone) {
-        if (StringUtils.isEmpty(phone)) return MsgSendResultEnum.MSG_PARAM_ERROR;
-
         // 生成验证码 4位 60s 不能重复发
         int code = RandomUtils.nextInt(1000 , 10000);
 
@@ -146,9 +144,6 @@ public class ISmsServiceImpl extends ServiceImpl<ISmsMapper, SmsPo>
 
     @Override
     public MsgCheckDTO checkLoginCode(String phone, Integer code) {
-        // 参数校验，验证码必须是 4 位数字
-        if (StringUtils.isEmpty(phone) || code == null || code >= 10000 || code < 1000) return new MsgCheckDTO(false, "参数异常");
-
         // 查询验证码
         String codeCache = msgCacheKeyBuilder.buildMsgLoginInfoKey(phone);
         Integer cacheKey = (Integer) redisTemplate.opsForValue().get(codeCache);

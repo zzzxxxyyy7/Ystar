@@ -1,6 +1,9 @@
 package com.ystar.user.provider;
 
+import com.ystar.user.provider.Service.IUserPhoneService;
+import jakarta.annotation.Resource;
 import org.apache.dubbo.config.spring.context.annotation.EnableDubbo;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -16,4 +19,5 @@ public class UserProviderApplication {
         springApplication.setWebApplicationType(WebApplicationType.NONE); //Dubbo不使用tomcat，使用netty
         springApplication.run(args);
     }
+
 }

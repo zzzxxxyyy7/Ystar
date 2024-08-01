@@ -55,17 +55,6 @@ public class IUserPhoneServiceImpl extends ServiceImpl<IUserPhoneMapper, TUserPh
     @DubboReference
     private IAccountTokenRPC iAccountTokenRPC;
 
-    private static final String SuccessPhoneFormat = "手机号格式正确";
-
-    public String checkPhone(String phone) {
-        if (StringUtils.isEmpty(phone)) return "手机号为空";
-        if (phone.length() != 11) return "手机号格式不正确";
-        for (int i = 0 ; i < phone.length() ; ++i) {
-            if (!(phone.charAt(i) >= '0' && phone.charAt(i) <= '9')) return "手机号含有错误字符";
-        }
-        return SuccessPhoneFormat;
-    }
-
     /**
      * 登录 + 注册接口
      * @param phone
@@ -73,9 +62,6 @@ public class IUserPhoneServiceImpl extends ServiceImpl<IUserPhoneMapper, TUserPh
      */
     @Override
     public UserLoginDTO login(String phone) {
-        String desc = checkPhone(phone);
-        if (!SuccessPhoneFormat.equals(desc)) return UserLoginDTO.LoginError(desc);
-
         /**
          * 用户有没有注册过是查手机号
          */
@@ -121,7 +107,7 @@ public class IUserPhoneServiceImpl extends ServiceImpl<IUserPhoneMapper, TUserPh
         TUserPhonePo tUserPhonePo = iUserPhoneMapper.selectOne(
                 new QueryWrapper<TUserPhonePo>()
                         .eq("phone", DESUtils.encrypt(phone))
-                        .eq("status" , CommonStatusEnum.VALID_STATUS)
+                        .eq("status" , CommonStatusEnum.VALID_STATUS.getCode())
                         .last("limit 1"));
         String redisKey = userProviderCacheKeyBuilder.buildUserPhoneObjKey(phone);
         if (tUserPhonePo == null) {

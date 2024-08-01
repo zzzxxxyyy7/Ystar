@@ -1,4 +1,4 @@
-package org.qiyu.live.api.config;
+package com.ystar.user.api.Config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
