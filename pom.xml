@@ -16,6 +16,7 @@
       <module>ystar-framework</module>
       <module>ystar-framework/ystar-framework-datasource-starter</module>
       <module>ystar-framework/ystar-framework-redis-starter</module>
+      <module>ystar-framework/ystar-framework-web-starter</module>
       <module>ystar-id-generate-interface</module>
       <module>ystar-id-provider</module>
       <module>ystar-gateway</module>
@@ -23,6 +24,8 @@
       <module>ystar-msg-interface</module>
       <module>ystar-auth-interface</module>
       <module>ystar-auth-provider</module>
+      <module>ystar-im-interface</module>
+      <module>ystar-im-core-server</module>
   </modules>
 
     <parent>
