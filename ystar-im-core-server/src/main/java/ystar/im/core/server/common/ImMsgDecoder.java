@@ -3,7 +3,7 @@ package ystar.im.core.server.common;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
-import ystar.im.interfaces.constant.ImConstants;
+import ystar.im.constant.ImConstants;
 
 import java.util.List;
 

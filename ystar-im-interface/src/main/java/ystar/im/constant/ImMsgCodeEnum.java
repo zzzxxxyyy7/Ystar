@@ -1,4 +1,4 @@
-package ystar.im.interfaces.enums;
+package ystar.im.constant;
 
 public enum ImMsgCodeEnum {
     

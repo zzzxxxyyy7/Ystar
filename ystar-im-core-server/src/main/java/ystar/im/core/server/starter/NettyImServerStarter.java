@@ -1,4 +1,4 @@
-package ystar.im.core.server;
+package ystar.im.core.server.starter;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -6,33 +6,32 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.context.annotation.Configuration;
 import ystar.im.core.server.common.ImMsgDecoder;
 import ystar.im.core.server.common.ImMsgEncoder;
 import ystar.im.core.server.handler.ImServerCoreHandler;
 
-/**
- * Netty启动类
- */
-public class NettyImServerApplication {
+@Configuration
+@RefreshScope
+public class NettyImServerStarter implements InitializingBean {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(NettyImServerApplication.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(NettyImServerStarter.class);
 
     //要监听的端口
+    @Value("${ystar.im.port}")
     private int port;
 
-    public int getPort() {
-        return port;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
-    }
+    @Resource
+    private ImServerCoreHandler imServerCoreHandler;
 
     //基于Netty去启动一个java进程，绑定监听的端口
-    public void startApplication(int port) throws InterruptedException {
-        setPort(port);
+    public void startApplication() throws InterruptedException {
         //处理accept事件
         NioEventLoopGroup bossGroup = new NioEventLoopGroup();
         //处理read&write事件
@@ -51,7 +50,7 @@ public class NettyImServerApplication {
                 channel.pipeline().addLast(new ImMsgEncoder());
                 channel.pipeline().addLast(new ImMsgDecoder());
                 //设置这个netty处理handler
-                channel.pipeline().addLast(new ImServerCoreHandler());
+                channel.pipeline().addLast(imServerCoreHandler);
             }
         });
         //基于JVM的钩子函数去实现优雅关闭
@@ -59,15 +58,20 @@ public class NettyImServerApplication {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
         }));
-
         ChannelFuture channelFuture = bootstrap.bind(port).sync();
-        LOGGER.info("Netty服务启动成功，监听端口为{}", getPort());
+        LOGGER.info("Netty服务启动成功，监听端口为{}", port);
         //这里会阻塞主线程，实现服务长期开启的效果
         channelFuture.channel().closeFuture().sync();
     }
 
-    public static void main(String[] args) throws InterruptedException {
-        NettyImServerApplication nettyImServerApplication = new NettyImServerApplication();
-        nettyImServerApplication.startApplication(9090);
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        new Thread(() -> {
+            try {
+                startApplication();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }, "ystar-im-server").start();
     }
 }

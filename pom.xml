@@ -26,6 +26,7 @@
       <module>ystar-auth-provider</module>
       <module>ystar-im-interface</module>
       <module>ystar-im-core-server</module>
+      <module>ystar-im-provider</module>
   </modules>
 
     <parent>

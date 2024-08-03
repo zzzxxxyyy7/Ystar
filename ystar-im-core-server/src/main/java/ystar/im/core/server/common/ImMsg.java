@@ -1,7 +1,7 @@
 package ystar.im.core.server.common;
 
 import lombok.Data;
-import ystar.im.interfaces.constant.ImConstants;
+import ystar.im.constant.ImConstants;
 
 import java.io.Serial;
 import java.io.Serializable;

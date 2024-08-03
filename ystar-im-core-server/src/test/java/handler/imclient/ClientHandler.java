@@ -1,3 +1,5 @@
+package handler.imclient;
+
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import ystar.im.core.server.common.ImMsg;

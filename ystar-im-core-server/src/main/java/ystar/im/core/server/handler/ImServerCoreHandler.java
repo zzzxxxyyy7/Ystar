@@ -1,24 +1,42 @@
 package ystar.im.core.server.handler;
 
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import jakarta.annotation.Resource;
+import org.springframework.stereotype.Component;
+import ystar.im.core.server.common.ChannelHandlerContextCache;
+import ystar.im.core.server.common.ImContextAttr;
 import ystar.im.core.server.common.ImMsg;
-import ystar.im.core.server.handler.Impl.ImHandlerFactoryImpl;
+import ystar.im.core.server.handler.Impl.LogoutMsgHandler;
 
+@Component
+@ChannelHandler.Sharable
 public class ImServerCoreHandler extends SimpleChannelInboundHandler {
-    
-    private ImHandlerFactory imHandlerFactory = new ImHandlerFactoryImpl();
-    
+
+    @Resource
+    private ImHandlerFactory imHandlerFactory;
+
+    @Resource
+    private LogoutMsgHandler logoutMsgHandler;
+
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, Object msg) throws Exception {
         if(!(msg instanceof ImMsg)) {
-            throw new IllegalArgumentException("error msg , msg 参数异常 , 协议不通 , msg is :" + msg);
+            throw new IllegalArgumentException("error msg, msg is :" + msg);
         }
         ImMsg imMsg = (ImMsg) msg;
         imHandlerFactory.doMsgHandler(channelHandlerContext, imMsg);
-        // 登录消息包 - 登录token认证 - channel 和 userId 关联
-        // 登出消息包 - 正常断开 im 连接使用
-        // 业务消息包 - 传输业务信息
-        // 心跳消息包 - 正常检测是否还存活
+    }
+
+    /**
+     * 客户端正常或意外掉线，都会触发这里，用来解决客户端意外断线的用户下线问题
+     * @param ctx
+     * @throws Exception
+     */
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        Long userId = ctx.attr(ImContextAttr.USER_ID).get();
+        ChannelHandlerContextCache.remove(userId);
     }
 }
