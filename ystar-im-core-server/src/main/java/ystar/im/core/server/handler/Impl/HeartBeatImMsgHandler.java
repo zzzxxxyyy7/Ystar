@@ -47,7 +47,7 @@ public class HeartBeatImMsgHandler implements SimpleHandler {
         // 清理掉超过 30 秒的心跳间隔记录
         this.removeExpireRecord(redisKey);
         // 一条心跳记录五分钟，如果没有发送心跳信息，整个 zset 就会在五分钟后过期，如果收到心跳，就会进行续期
-        redisTemplate.expire(redisKey, 2L, TimeUnit.MINUTES);
+        redisTemplate.expire(redisKey, 5L, TimeUnit.MINUTES);
 
         // 回写消息给客户端
         ImMsgBody respBody = new ImMsgBody();

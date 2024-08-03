@@ -79,7 +79,7 @@ public class ImClientHandler implements InitializingBean {
                         heartBeatBody.setUserId(userId);
                         heartBeatBody.setAppId(AppIdEnum.YStar_LIVE_BIZ.getCode());
                         ImMsg heartBeatMsg;
-                        if (i != 4)  heartBeatMsg = ImMsg.build(ImMsgCodeEnum.IM_HEARTBEAT_MSG.getCode(), JSON.toJSONString(heartBeatBody));
+                        if (i != 4)  heartBeatMsg = ImMsg.build(ImMsgCodeEnum.IM_BIZ_MSG.getCode(), JSON.toJSONString(heartBeatBody));
                         else heartBeatMsg = ImMsg.build(ImMsgCodeEnum.IM_LOGOUT_MSG.getCode(), JSON.toJSONString(heartBeatBody));
                         userIdChannelMap.get(userId).writeAndFlush(heartBeatMsg);
                     }

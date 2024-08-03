@@ -12,4 +12,5 @@ public class ImClientApplication {
         springApplication.setWebApplicationType(WebApplicationType.NONE);
         springApplication.run(args);
     }
+
 }
