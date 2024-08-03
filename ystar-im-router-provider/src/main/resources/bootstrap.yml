@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: ystar-im-router-provider
+  profiles:
+    active: dev
+  cloud:
+    nacos:
+      server-addr: 139.224.188.112:8848
+      config:
+        # 当前服务启动后去nacos中读取配置文件的后缀
+        file-extension: yaml

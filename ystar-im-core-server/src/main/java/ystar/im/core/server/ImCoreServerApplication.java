@@ -1,16 +1,10 @@
 package ystar.im.core.server;
 
-import com.rabbitmq.client.Channel;
-import jakarta.annotation.Resource;
-import org.springframework.amqp.core.Message;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.boot.CommandLineRunner;
+import org.apache.dubbo.config.spring.context.annotation.EnableDubbo;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
-import ystar.im.core.server.config.RabbitMqConfig;
 
 import java.util.concurrent.CountDownLatch;
 
@@ -19,6 +13,7 @@ import java.util.concurrent.CountDownLatch;
  */
 @SpringBootApplication
 @EnableDiscoveryClient
+@EnableDubbo
 public class ImCoreServerApplication   {
 
     public static void main(String[] args) throws InterruptedException {
@@ -28,7 +23,5 @@ public class ImCoreServerApplication   {
         springApplication.run(args);
         countDownLatch.await();
     }
-
-
 
 }

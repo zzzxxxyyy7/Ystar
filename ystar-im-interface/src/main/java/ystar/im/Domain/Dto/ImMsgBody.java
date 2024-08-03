@@ -32,4 +32,6 @@ public class ImMsgBody implements Serializable {
      * 和业务服务进行消息传递
      */
     private String data;
+
+
 }

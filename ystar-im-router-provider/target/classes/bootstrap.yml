@@ -1,6 +1,6 @@
 spring:
   application:
-    name: ystar-auth-provider
+    name: ystar-im-router-provider
   profiles:
     active: dev
   cloud:

@@ -27,6 +27,9 @@
       <module>ystar-im-interface</module>
       <module>ystar-im-core-server</module>
       <module>ystar-im-provider</module>
+      <module>ystar-im-core-server-interface</module>
+      <module>ystar-im-router-interface</module>
+      <module>ystar-im-router-provider</module>
   </modules>
 
     <parent>
