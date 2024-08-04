@@ -10,8 +10,10 @@ import org.springframework.stereotype.Component;
 import ystar.im.Domain.Dto.ImMsgBody;
 import ystar.im.constant.ImConstants;
 import ystar.im.constant.ImMsgCodeEnum;
+import ystar.im.core.server.common.ChannelHandlerContextCache;
 import ystar.im.core.server.common.ImContextUtils;
 import ystar.im.core.server.common.ImMsg;
+import ystar.im.core.server.constants.ImCoreServerConstants;
 import ystar.im.core.server.handler.SimpleHandler;
 import ystart.framework.redis.starter.key.ImCoreServerProviderCacheKeyBuilder;
 
@@ -49,12 +51,18 @@ public class HeartBeatImMsgHandler implements SimpleHandler {
         // 一条心跳记录五分钟，如果没有发送心跳信息，整个 zset 就会在五分钟后过期，如果收到心跳，就会进行续期
         redisTemplate.expire(redisKey, 5L, TimeUnit.MINUTES);
 
+        /**
+         * 心跳检测成功 延长记录时间
+         */
+        redisTemplate.expire(ImCoreServerConstants.IM_BIND_IP_KEY + appId + ":" + userId
+                , ImConstants.DEFAULT_HEART_BEAT_GAP * 2 , TimeUnit.SECONDS);
+
         // 回写消息给客户端
         ImMsgBody respBody = new ImMsgBody();
         respBody.setUserId(userId);
         respBody.setAppId(appId);
-        respBody.setData("true");
-        LOGGER.info("[HeartBeatImMsgHandler] heartbeat msg, userId is {}, appId is {}", userId, appId);
+        respBody.setData("心跳信息");
+        LOGGER.info("[心跳信息] heartbeat msg, userId is {}, appId is {}", userId, appId);
         ctx.writeAndFlush(ImMsg.build(ImMsgCodeEnum.IM_HEARTBEAT_MSG.getCode(), JSON.toJSONString(respBody)));
     }
 

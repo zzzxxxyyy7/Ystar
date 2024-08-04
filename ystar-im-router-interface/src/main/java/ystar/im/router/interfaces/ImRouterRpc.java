@@ -1,5 +1,6 @@
 package ystar.im.router.interfaces;
 
+
 import ystar.im.Domain.Dto.ImMsgBody;
 
 public interface ImRouterRpc {
@@ -7,5 +8,5 @@ public interface ImRouterRpc {
     /**
      * 按照用户id进行消息的发送
      */
-    boolean sendMsg(Long objectId , String msgJson);
+    boolean sendMsg(ImMsgBody imMsgBody);
 }

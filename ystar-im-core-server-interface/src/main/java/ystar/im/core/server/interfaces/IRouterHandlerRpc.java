@@ -10,5 +10,5 @@ public interface IRouterHandlerRpc {
     /**
      * 按照用户id进行消息的发送
      */
-    void sendMsg(Long objectId , String msgJson);
+    void sendMsg(ImMsgBody imMsgBody);
 }

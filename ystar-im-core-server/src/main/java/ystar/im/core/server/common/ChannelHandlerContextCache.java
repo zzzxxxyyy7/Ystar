@@ -10,6 +10,19 @@ import java.util.Map;
  * 用来存储 userId 和其对应的 ChannelContext
  */
 public class ChannelHandlerContextCache {
+
+    /**
+     * 当前服务启动时缓存，对外暴露的 IP 和 端口
+     */
+    private static String SERVER_IP_ADDRESS = "";
+
+    public static String getServerIpAddress() {
+        return SERVER_IP_ADDRESS;
+    }
+
+    public static void setServerIpAddress(String serverIpAddress) {
+        SERVER_IP_ADDRESS = serverIpAddress;
+    }
     
     private static Map<Long, ChannelHandlerContext> channelHandlerContextMap = new HashMap<>();
     

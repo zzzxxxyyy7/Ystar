@@ -3,20 +3,26 @@ package ystar.im.core.server.handler.Impl;
 import com.alibaba.fastjson.JSON;
 import io.micrometer.common.util.StringUtils;
 import io.netty.channel.ChannelHandlerContext;
+import jakarta.annotation.Resource;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import ystar.im.Domain.Dto.ImMsgBody;
 import ystar.im.constant.AppIdEnum;
+import ystar.im.constant.ImConstants;
 import ystar.im.constant.ImMsgCodeEnum;
 import ystar.im.core.server.common.ChannelHandlerContextCache;
 import ystar.im.core.server.common.ImContextUtils;
 import ystar.im.core.server.common.ImMsg;
+import ystar.im.core.server.constants.ImCoreServerConstants;
 import ystar.im.core.server.handler.SimpleHandler;
 import ystar.im.interfaces.ImTokenRpc;
 
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 登录消息处理器
@@ -28,6 +34,9 @@ public class LoginMsgHandler implements SimpleHandler {
 
     @DubboReference
     private ImTokenRpc imTokenRpc;
+
+    @Resource
+    private RedisTemplate<String , String> redisTemplate;
 
     /**
      * 想要建立连接的话，我们需要进行一系列的参数校验，
@@ -59,7 +68,7 @@ public class LoginMsgHandler implements SimpleHandler {
         }
 
         Long userId = imTokenRpc.getUserIdByToken(token);
-        // 从RPC获取的userId和传递过来的userId相等，则没出现差错，允许建立连接
+        // 从RPC获取的 userId 和传递过来的 userId 相等，则没出现差错，允许建立连接
         if (userId != null && userId.equals(userIdFromMsg)) {
 
             // 按照userId保存好相关的channel信息
@@ -74,9 +83,17 @@ public class LoginMsgHandler implements SimpleHandler {
             ImMsgBody respBody = new ImMsgBody();
             respBody.setAppId(AppIdEnum.YStar_LIVE_BIZ.getCode());
             respBody.setUserId(userId);
-            respBody.setData("true");
+            respBody.setData("成功登录后，写回客户端注册信息");
             ImMsg respMsg = ImMsg.build(ImMsgCodeEnum.IM_LOGIN_MSG.getCode(), JSON.toJSONString(respBody));
-            LOGGER.info("[LoginMsgHandler] login success, userId is {}, appId is {}", userId, appId);
+
+            /**
+             * 用户登录成功，记录 IP -> 用户 存入 Redis
+             */
+            redisTemplate.opsForValue().set(ImCoreServerConstants.IM_BIND_IP_KEY + appId + ":" + userId
+                    , ChannelHandlerContextCache.getServerIpAddress()
+            , ImConstants.DEFAULT_HEART_BEAT_GAP * 2 , TimeUnit.SECONDS);
+
+            LOGGER.info("[注册信息] login success, userId is {}, appId is {}", userId, appId);
             ctx.writeAndFlush(respMsg);
             return;
         }

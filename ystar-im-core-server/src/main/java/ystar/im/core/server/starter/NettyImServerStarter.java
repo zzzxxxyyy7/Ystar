@@ -13,6 +13,8 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+import ystar.im.core.server.common.ChannelHandlerContextCache;
 import ystar.im.core.server.common.ImMsgDecoder;
 import ystar.im.core.server.common.ImMsgEncoder;
 import ystar.im.core.server.handler.ImServerCoreHandler;
@@ -27,18 +29,30 @@ public class NettyImServerStarter implements InitializingBean {
     @Value("${ystar.im.port}")
     private int port;
 
+    @Value("${ystar.im.server.ip}")
+    private String serverIpAddress;
+
+    /**
+     * 用来获取环境变量，获取启动参数
+     */
+    @Resource
+    private Environment environment;
+
     @Resource
     private ImServerCoreHandler imServerCoreHandler;
 
     //基于Netty去启动一个java进程，绑定监听的端口
     public void startApplication() throws InterruptedException {
+
         //处理accept事件
         NioEventLoopGroup bossGroup = new NioEventLoopGroup();
+
         //处理read&write事件
         NioEventLoopGroup workerGroup = new NioEventLoopGroup();
         ServerBootstrap bootstrap = new ServerBootstrap();
         bootstrap.group(bossGroup, workerGroup);
         bootstrap.channel(NioServerSocketChannel.class);
+
         //netty初始化相关的handler
         bootstrap.childHandler(new ChannelInitializer<>() {
             @Override
@@ -53,13 +67,21 @@ public class NettyImServerStarter implements InitializingBean {
                 channel.pipeline().addLast(imServerCoreHandler);
             }
         });
+
         //基于JVM的钩子函数去实现优雅关闭
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
         }));
+
+        /**
+         * 服务地址和IP端口存入本地内存
+         */
+        ChannelHandlerContextCache.setServerIpAddress(serverIpAddress);
+
         ChannelFuture channelFuture = bootstrap.bind(port).sync();
         LOGGER.info("Netty服务启动成功，监听端口为{}", port);
+
         //这里会阻塞主线程，实现服务长期开启的效果
         channelFuture.channel().closeFuture().sync();
     }

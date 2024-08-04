@@ -4,5 +4,5 @@ import ystar.im.Domain.Dto.ImMsgBody;
 
 public interface ImRouterService {
 
-    boolean sendMsg(Long objectId , String msgJson);
+    boolean sendMsg(ImMsgBody imMsgBody);
 }

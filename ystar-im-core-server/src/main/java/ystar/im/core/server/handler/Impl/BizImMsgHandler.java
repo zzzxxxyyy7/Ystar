@@ -1,5 +1,6 @@
 package ystar.im.core.server.handler.Impl;
 
+import com.alibaba.fastjson.JSON;
 import io.netty.channel.ChannelHandlerContext;
 import jakarta.annotation.Resource;
 import org.slf4j.Logger;
@@ -7,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
+import ystar.im.Domain.Dto.ImMsgBody;
+import ystar.im.constant.ImMsgCodeEnum;
 import ystar.im.constant.RabbitMqConstants;
 import ystar.im.core.server.common.ImContextUtils;
 import ystar.im.core.server.common.ImMsg;
@@ -41,16 +44,24 @@ public class BizImMsgHandler implements SimpleHandler {
             return;
         }
 
-        Message message = new Message(body);
+        LOGGER.info("成功收到来自 userId：{} 的消息 ， 并且投递到业务下游" , userId);
 
+        /**
+         * MQ 投递消息到下游微服务
+         */
+        Message message = new Message(body);
         rabbitTemplate.convertAndSend(RabbitMqConstants.DELAYED_EXCHANGE, RabbitMqConstants.DELAYED_ROUTINGKEY, message ,(msg -> {
             //发送消息 并设置delayedTime
             msg.getMessageProperties().setDelay(1);
             return msg;
         }));
 
+        ImMsgBody respBody = new ImMsgBody();
+        respBody.setUserId(userId);
+        respBody.setAppId(appId);
+        respBody.setData("成功发送后，写回客户端业务信息");
 
-        System.out.println("[bizImMsg]:" + imMsg);
-        ctx.writeAndFlush(imMsg);
+        System.out.println("[业务信息]:" + imMsg);
+        ctx.writeAndFlush(ImMsg.build(ImMsgCodeEnum.IM_BIZ_MSG.getCode(), JSON.toJSONString(respBody)));
     }
 }
