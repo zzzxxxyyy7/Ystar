@@ -4,10 +4,13 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import jakarta.annotation.Resource;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import ystar.im.core.server.common.ChannelHandlerContextCache;
 import ystar.im.core.server.common.ImContextAttr;
+import ystar.im.core.server.common.ImContextUtils;
 import ystar.im.core.server.common.ImMsg;
+import ystar.im.core.server.constants.ImCoreServerConstants;
 import ystar.im.core.server.handler.Impl.LogoutMsgHandler;
 
 @Component
@@ -19,6 +22,9 @@ public class ImServerCoreHandler extends SimpleChannelInboundHandler {
 
     @Resource
     private LogoutMsgHandler logoutMsgHandler;
+
+    @Resource
+    private RedisTemplate<String , String> redisTemplate;
 
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, Object msg) throws Exception {
@@ -36,7 +42,10 @@ public class ImServerCoreHandler extends SimpleChannelInboundHandler {
      */
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        Long userId = ctx.attr(ImContextAttr.USER_ID).get();
-        ChannelHandlerContextCache.remove(userId);
+        Long userId = ImContextUtils.getUserId(ctx);
+        Integer appId = ImContextUtils.getAppId(ctx);
+        if (userId != null && appId != null) {
+            logoutMsgHandler.handlerLogout(userId, appId);
+        }
     }
 }
