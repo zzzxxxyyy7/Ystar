@@ -13,6 +13,9 @@ import ystar.im.core.server.constants.ImCoreServerConstants;
 import ystar.im.core.server.interfaces.IRouterHandlerRpc;
 import ystar.im.router.provider.service.ImRouterService;
 
+/**
+ * Router 层进行调用 IM 服务回传信息
+ */
 @Service
 public class ImRouterServiceImpl implements ImRouterService {
 

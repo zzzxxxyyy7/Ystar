@@ -20,6 +20,7 @@ import ystar.im.core.server.common.ImMsgEncoder;
 import ystar.im.interfaces.ImTokenRpc;
 
 import java.util.Scanner;
+import java.util.UUID;
 
 @Service
 public class ImClientHandler implements InitializingBean {
@@ -73,6 +74,7 @@ public class ImClientHandler implements InitializingBean {
                         bizBody.setUserId(userId);
                         bizBody.setAppId(AppIdEnum.YStar_LIVE_BIZ.getCode());
                         bizBody.setBizCode(5555);
+                        bizBody.setMsgId(UUID.randomUUID().toString());
                         JSONObject jsonObject = new JSONObject();
                         // 目标用户
                         jsonObject.put("objectId", objectId);

@@ -29,6 +29,4 @@ public class ImProviderApplication {
         countDownLatch.await();
     }
 
-    @Resource
-    private ImOnlineService imOnlineService;
 }

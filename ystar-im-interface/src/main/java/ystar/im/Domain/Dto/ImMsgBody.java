@@ -33,5 +33,8 @@ public class ImMsgBody implements Serializable {
      */
     private String data;
 
-
+    /**
+     * 唯一的消息id标识
+     */
+    private String msgId;
 }

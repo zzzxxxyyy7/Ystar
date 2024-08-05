@@ -39,6 +39,7 @@ public class SingleMessageHandlerImpl implements MessageHandler {
             respMsg.setUserId(messageDto.getObjectId());
             respMsg.setAppId(AppIdEnum.YStar_LIVE_BIZ.getCode());
             respMsg.setBizCode(ImMsgBizCodeEum.LIVING_ROOM_IM_CHAT_MSG_BIZ.getCode());
+            respMsg.setMsgId(imMsgBody.getMsgId());
 
             // 测试 , 存储Data信息
             JSONObject jsonObject = new JSONObject();
