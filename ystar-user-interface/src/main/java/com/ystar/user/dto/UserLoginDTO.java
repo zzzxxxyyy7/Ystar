@@ -7,6 +7,7 @@ import java.io.Serializable;
 
 @Data
 public class UserLoginDTO implements Serializable {
+
     @Serial
     private static final long serialVersionUID = -4290788036479984698L;
 

@@ -30,6 +30,8 @@
       <module>ystar-im-core-server-interface</module>
       <module>ystar-im-router-interface</module>
       <module>ystar-im-router-provider</module>
+      <module>ystar-living-interface</module>
+      <module>ystar-living-provider</module>
   </modules>
 
     <parent>
