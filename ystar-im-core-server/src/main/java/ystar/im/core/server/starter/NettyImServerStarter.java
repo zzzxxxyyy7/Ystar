@@ -17,7 +17,7 @@ import org.springframework.core.env.Environment;
 import ystar.im.core.server.common.ChannelHandlerContextCache;
 import ystar.im.core.server.common.ImMsgDecoder;
 import ystar.im.core.server.common.ImMsgEncoder;
-import ystar.im.core.server.handler.ImServerCoreHandler;
+import ystar.im.core.server.handler.Tcp.TcpImServerCoreHandler;
 
 @Configuration
 @RefreshScope
@@ -39,7 +39,7 @@ public class NettyImServerStarter implements InitializingBean {
     private Environment environment;
 
     @Resource
-    private ImServerCoreHandler imServerCoreHandler;
+    private TcpImServerCoreHandler tcpImServerCoreHandler;
 
     //基于Netty去启动一个java进程，绑定监听的端口
     public void startApplication() throws InterruptedException {
@@ -64,7 +64,7 @@ public class NettyImServerStarter implements InitializingBean {
                 channel.pipeline().addLast(new ImMsgEncoder());
                 channel.pipeline().addLast(new ImMsgDecoder());
                 //设置这个netty处理handler
-                channel.pipeline().addLast(imServerCoreHandler);
+                channel.pipeline().addLast(tcpImServerCoreHandler);
             }
         });
 
@@ -80,7 +80,7 @@ public class NettyImServerStarter implements InitializingBean {
         ChannelHandlerContextCache.setServerIpAddress(serverIpAddress);
 
         ChannelFuture channelFuture = bootstrap.bind(port).sync();
-        LOGGER.info("Netty服务启动成功，监听端口为{}", port);
+        LOGGER.info("Netty - TCP 服务启动成功，监听端口为{}", port);
 
         //这里会阻塞主线程，实现服务长期开启的效果
         channelFuture.channel().closeFuture().sync();

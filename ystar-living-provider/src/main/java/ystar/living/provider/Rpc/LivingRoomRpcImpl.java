@@ -1,8 +1,11 @@
 package ystar.living.provider.Rpc;
 
 
+import com.ystar.common.VO.PageWrapper;
 import jakarta.annotation.Resource;
 import org.apache.dubbo.config.annotation.DubboService;
+import ystar.living.Vo.req.LivingRoomReqVO;
+import ystar.living.Vo.resp.LivingRoomPageRespVO;
 import ystar.living.dto.LivingRoomReqDTO;
 import ystar.living.dto.LivingRoomRespDTO;
 import ystar.living.interfaces.ILivingRoomRpc;
@@ -13,6 +16,11 @@ public class LivingRoomRpcImpl implements ILivingRoomRpc {
 
     @Resource
     private TLivingRoomService tLivingRoomService;
+
+    @Override
+    public PageWrapper<LivingRoomRespDTO> list(LivingRoomReqDTO livingRoomReqDTO) {
+        return tLivingRoomService.list(livingRoomReqDTO);
+    }
 
     /**
      * 开播

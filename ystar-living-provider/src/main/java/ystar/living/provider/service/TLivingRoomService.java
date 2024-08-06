@@ -1,9 +1,12 @@
 package ystar.living.provider.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.ystar.common.VO.PageWrapper;
 import ystar.living.dto.LivingRoomReqDTO;
 import ystar.living.dto.LivingRoomRespDTO;
 import ystar.living.provider.Domain.Po.TLivingRoomPo;
+
+import java.util.List;
 
 /**
 * @author Rhss
@@ -17,4 +20,19 @@ public interface TLivingRoomService extends IService<TLivingRoomPo> {
     boolean closeLiving(LivingRoomReqDTO livingRoomReqDTO);
 
     LivingRoomRespDTO queryByRoomId(Integer roomId);
+
+    /**
+     * 直播间列表的分页查询
+     *
+     * @param livingRoomReqDTO
+     * @return
+     */
+    PageWrapper<LivingRoomRespDTO> list(LivingRoomReqDTO livingRoomReqDTO);
+
+    /**
+     * 定时任务调度刷新缓存和数据库直播间集合差异
+     * @param type
+     * @return
+     */
+    List<LivingRoomRespDTO> listAllLivingRoomFromDB(Integer type);
 }

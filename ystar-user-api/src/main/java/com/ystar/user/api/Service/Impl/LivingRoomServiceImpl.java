@@ -1,16 +1,25 @@
 package com.ystar.user.api.Service.Impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.ystar.common.VO.PageWrapper;
+import com.ystar.common.utils.CommonStatusEnum;
+import com.ystar.common.utils.ConvertBeanUtils;
 import com.ystar.user.api.Service.ILivingRoomService;
 import com.ystar.user.api.Vo.LivingRoomInitVO;
+import ystar.living.Vo.req.LivingRoomReqVO;
 import com.ystar.user.dto.UserDTO;
 import com.ystar.user.interfaces.IUserRpc;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.stereotype.Service;
 import ystar.framework.web.starter.context.YStarRequestContext;
+import ystar.living.Vo.resp.LivingRoomPageRespVO;
+import ystar.living.Vo.resp.LivingRoomRespVO;
 import ystar.living.dto.LivingRoomReqDTO;
 import ystar.living.dto.LivingRoomRespDTO;
 import ystar.living.interfaces.ILivingRoomRpc;
+
+import java.util.List;
+import java.util.Random;
 
 @Service
 public class LivingRoomServiceImpl implements ILivingRoomService {
@@ -20,6 +29,20 @@ public class LivingRoomServiceImpl implements ILivingRoomService {
 
     @DubboReference
     private IUserRpc iUserRpc;
+
+    /**
+     * 查询正在直播的列表
+     * @param livingRoomReqVO
+     * @return
+     */
+    @Override
+    public LivingRoomPageRespVO list(LivingRoomReqVO livingRoomReqVO) {
+        PageWrapper<LivingRoomRespDTO> resultPage = iLivingRoomRpc.list(BeanUtil.copyProperties(livingRoomReqVO, LivingRoomReqDTO.class));
+        LivingRoomPageRespVO livingRoomPageRespVO = new LivingRoomPageRespVO();
+        livingRoomPageRespVO.setList(ConvertBeanUtils.convertList(resultPage.getList(), LivingRoomRespVO.class));
+        livingRoomPageRespVO.setHasNext(resultPage.isHasNext());
+        return livingRoomPageRespVO;
+    }
 
     /**
      * 开播
@@ -37,7 +60,8 @@ public class LivingRoomServiceImpl implements ILivingRoomService {
         livingRoomReqDTO.setType(type);
         // 从线程上下文取出
         livingRoomReqDTO.setAnchorId(userId);
-        livingRoomReqDTO.setRoomName("YStar官方直播间");
+        livingRoomReqDTO.setRoomName("YStar官方直播间" + new Random().nextInt(10000));
+
         // 直播间图片取自用户头像
         livingRoomReqDTO.setCovertImg(user.getAvatar());
 
@@ -66,9 +90,19 @@ public class LivingRoomServiceImpl implements ILivingRoomService {
     @Override
     public LivingRoomInitVO anchorConfig(Long userId, Integer roomId) {
         LivingRoomRespDTO respDTO = iLivingRoomRpc.queryByRoomId(roomId);
-        LivingRoomInitVO respVO = BeanUtil.copyProperties(respDTO, LivingRoomInitVO.class);
-        if (respDTO == null || respDTO.getAnchorId() == null || userId == null) respVO.setAnchor(false);
-        else respVO.setAnchor(respDTO.getAnchorId().equals(userId));
+        LivingRoomInitVO respVO = new LivingRoomInitVO();
+        if (respDTO == null || respDTO.getAnchorId() == null || userId == null) {
+            //直播间不存在，设置roomId为-1
+            respVO.setRoomId(-1);
+        }else {
+            respVO.setRoomId(respDTO.getId());
+            respVO.setRoomName(respDTO.getRoomName());
+            respVO.setAnchorId(respDTO.getAnchorId());
+            respVO.setAnchor(respDTO.getAnchorId().equals(userId));
+            respVO.setAnchorImg(respDTO.getCovertImg());
+            respVO.setDefaultBgImg(respDTO.getCovertImg());
+            respVO.setUserId(userId);
+        }
         return respVO;
     }
 }

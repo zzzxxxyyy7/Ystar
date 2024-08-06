@@ -31,6 +31,7 @@ public class YStarUserInfoInterceptor implements HandlerInterceptor {
 
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
+        // 自动触发 clear 方法，移除内存泄漏的情况
         YStarRequestContext.clear();
     }
 }

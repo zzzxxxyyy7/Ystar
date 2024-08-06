@@ -60,6 +60,20 @@ public class LogoutMsgHandler implements SimpleHandler {
         ctx.close();
     }
 
+    public void logoutHandler(ChannelHandlerContext ctx, Long userId, Integer appId) {
+        ImMsgBody respBody = new ImMsgBody();
+        respBody.setUserId(userId);
+        respBody.setAppId(appId);
+        respBody.setData("true");
+        ctx.writeAndFlush(ImMsg.build(ImMsgCodeEnum.IM_LOGOUT_MSG.getCode(), JSON.toJSONString(respBody)));
+        LOGGER.info("[LogoutMsgHandler] logout success, userId is {}, appId is {}", userId, appId);
+        handlerLogout(userId, appId);
+        ImContextUtils.removeUserId(ctx);
+        ImContextUtils.removeAppId(ctx);
+        ImContextUtils.removeRoomId(ctx);
+        ctx.close();
+    }
+
     public void handlerLogout(Long userId, Integer appId) {
         // 理想情况下：客户端短线的时候发送短线消息包
         ChannelHandlerContextCache.remove(userId);

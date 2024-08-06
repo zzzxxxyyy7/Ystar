@@ -1,5 +1,6 @@
 package ystar.gateway.Filter;
 
+import com.ystar.common.Enums.GatewayHeaderEnum;
 import io.micrometer.common.util.StringUtils;
 import jakarta.annotation.Resource;
 import org.apache.dubbo.config.annotation.DubboReference;
@@ -38,8 +39,6 @@ public class AccountCheckFilter implements GlobalFilter, Ordered {
         // 获取请求url，判断是否为空，如果为空则返回请求不通过
         ServerHttpRequest request = exchange.getRequest();
         String reqUrl = request.getURI().getPath();
-
-        System.out.println(request.getMethod());
 
         // 动态设置 Access-Control-Allow-Origin
         ServerHttpResponse response = exchange.getResponse();
@@ -86,11 +85,12 @@ public class AccountCheckFilter implements GlobalFilter, Ordered {
 
         LOGGER.info("Token 校验成功！");
 
-        ServerWebExchange ex = exchange.mutate()
-                .request(b -> b.header("userId" , userId.toString()))
-                .build();
+        // 将userId传递给下游
+        // gateway --(header)--> springboot-web(interceptor-->get header)
+        ServerHttpRequest.Builder builder = request.mutate();
+        builder.header(GatewayHeaderEnum.USER_LOGIN_ID.getName(), String.valueOf(userId));
 
-        return chain.filter(ex);
+        return chain.filter(exchange.mutate().request(builder.build()).build());
     }
 
     @Override

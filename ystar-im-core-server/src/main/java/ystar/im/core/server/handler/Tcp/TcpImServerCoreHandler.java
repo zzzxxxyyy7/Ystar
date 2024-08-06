@@ -1,4 +1,4 @@
-package ystar.im.core.server.handler;
+package ystar.im.core.server.handler.Tcp;
 
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -6,16 +6,14 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import jakarta.annotation.Resource;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
-import ystar.im.core.server.common.ChannelHandlerContextCache;
-import ystar.im.core.server.common.ImContextAttr;
 import ystar.im.core.server.common.ImContextUtils;
 import ystar.im.core.server.common.ImMsg;
-import ystar.im.core.server.constants.ImCoreServerConstants;
+import ystar.im.core.server.handler.ImHandlerFactory;
 import ystar.im.core.server.handler.Impl.LogoutMsgHandler;
 
 @Component
 @ChannelHandler.Sharable
-public class ImServerCoreHandler extends SimpleChannelInboundHandler {
+public class TcpImServerCoreHandler extends SimpleChannelInboundHandler {
 
     @Resource
     private ImHandlerFactory imHandlerFactory;

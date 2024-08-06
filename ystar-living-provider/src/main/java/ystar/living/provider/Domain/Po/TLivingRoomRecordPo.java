@@ -24,7 +24,8 @@ public class TLivingRoomRecordPo implements Serializable {
     /**
      * 主播id
      */
-    private Long anchor_id;
+    @TableField("anchor_id")
+    private Long anchorId;
 
     /**
      * 直播间类型（0默认类型）
@@ -39,12 +40,14 @@ public class TLivingRoomRecordPo implements Serializable {
     /**
      * 直播间名称
      */
-    private String room_name;
+    @TableField("room_name")
+    private String roomName;
 
     /**
      * 直播间封面
      */
-    private String covert_img;
+    @TableField("covert_img")
+    private String covertImg;
 
     /**
      * 观看数量

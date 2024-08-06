@@ -1,5 +1,8 @@
 package ystar.living.interfaces;
 
+import com.ystar.common.VO.PageWrapper;
+import ystar.living.Vo.req.LivingRoomReqVO;
+import ystar.living.Vo.resp.LivingRoomPageRespVO;
 import ystar.living.dto.LivingRoomReqDTO;
 import ystar.living.dto.LivingRoomRespDTO;
 
@@ -28,4 +31,12 @@ public interface ILivingRoomRpc {
      * @return
      */
     LivingRoomRespDTO queryByRoomId(Integer roomId);
+
+    /**
+     * 直播间列表的分页查询
+     *
+     * @param livingRoomReqDTO
+     * @return
+     */
+    PageWrapper<LivingRoomRespDTO> list(LivingRoomReqDTO livingRoomReqDTO);
 }
