@@ -2,6 +2,8 @@ package ystar.living.provider.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.ystar.common.VO.PageWrapper;
+import ystar.im.core.server.dto.ImOfflineDto;
+import ystar.im.core.server.dto.ImOnlineDto;
 import ystar.living.dto.LivingRoomReqDTO;
 import ystar.living.dto.LivingRoomRespDTO;
 import ystar.living.provider.Domain.Po.TLivingRoomPo;
@@ -14,6 +16,18 @@ import java.util.List;
 * @createDate 2024-08-05 15:45:50
 */
 public interface TLivingRoomService extends IService<TLivingRoomPo> {
+
+    /**
+     * 用户上线
+     * @param imOnlineDto
+     */
+    void userOnlineHandler(ImOnlineDto imOnlineDto);
+
+    /**
+     * 用户下线
+     * @param imOfflineDto
+     */
+    void userOfflineHandler(ImOfflineDto imOfflineDto);
 
     Integer startLivingRoom(LivingRoomReqDTO livingRoomReqDTO);
 
@@ -35,4 +49,6 @@ public interface TLivingRoomService extends IService<TLivingRoomPo> {
      * @return
      */
     List<LivingRoomRespDTO> listAllLivingRoomFromDB(Integer type);
+
+    List<Long> queryUserIdsByRoomId(LivingRoomReqDTO livingRoomReqDTO);
 }

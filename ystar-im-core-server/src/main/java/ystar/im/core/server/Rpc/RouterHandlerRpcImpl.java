@@ -6,6 +6,8 @@ import ystar.im.Domain.Dto.ImMsgBody;
 import ystar.im.core.server.interfaces.IRouterHandlerRpc;
 import ystar.im.core.server.service.IRouterHandlerService;
 
+import java.util.List;
+
 @DubboService
 public class RouterHandlerRpcImpl implements IRouterHandlerRpc {
 
@@ -15,5 +17,10 @@ public class RouterHandlerRpcImpl implements IRouterHandlerRpc {
     @Override
     public void sendMsg(ImMsgBody imMsgBody) {
         iRouterHandlerService.onReceive(imMsgBody);
+    }
+
+    @Override
+    public void batchSendMsg(List<ImMsgBody> imMsgBodyList) {
+        iRouterHandlerService.batchSendMsg(imMsgBodyList);
     }
 }

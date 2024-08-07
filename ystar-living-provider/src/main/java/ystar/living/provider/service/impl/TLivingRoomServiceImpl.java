@@ -8,10 +8,16 @@ import com.ystar.common.VO.PageWrapper;
 import com.ystar.common.utils.CommonStatusEnum;
 import com.ystar.common.utils.ConvertBeanUtils;
 import jakarta.annotation.Resource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import ystar.im.core.server.dto.ImOfflineDto;
+import ystar.im.core.server.dto.ImOnlineDto;
 import ystar.living.dto.LivingRoomReqDTO;
 import ystar.living.dto.LivingRoomRespDTO;
 import ystar.living.provider.Domain.Mapper.TLivingRoomMapper;
@@ -22,6 +28,7 @@ import ystar.living.provider.service.TLivingRoomService;
 import org.springframework.stereotype.Service;
 import ystart.framework.redis.starter.key.LivingProviderCacheKeyBuilder;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -36,6 +43,8 @@ import java.util.concurrent.TimeUnit;
 public class TLivingRoomServiceImpl extends ServiceImpl<TLivingRoomMapper, TLivingRoomPo>
     implements TLivingRoomService{
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(TLivingRoomServiceImpl.class);
+
     @Resource
     private TLivingRoomMapper tLivingRoomMapper;
 
@@ -47,6 +56,49 @@ public class TLivingRoomServiceImpl extends ServiceImpl<TLivingRoomMapper, TLivi
 
     @Resource
     private LivingProviderCacheKeyBuilder livingProviderCacheKeyBuilder;
+
+    @Override
+    public void userOnlineHandler(ImOnlineDto imOnlineDto) {
+        Long userId = imOnlineDto.getUserId();
+        Integer roomId = imOnlineDto.getRoomId();
+        Integer appId = imOnlineDto.getAppId();
+        /**
+         * 默认基于直播间存在的最大时间，存入用户 ID 和直播间 ID的绑定关系
+         */
+        String cacheKey = livingProviderCacheKeyBuilder.buildLivingRoomUserSet(roomId , appId);
+        // 把用户存入队列
+        redisTemplate.opsForSet().add(cacheKey , userId);
+        redisTemplate.expire(cacheKey , 12 , TimeUnit.HOURS);
+        LOGGER.info("用户 {} 已经成功登录直播间：{}" , userId , roomId);
+    }
+
+    @Override
+    public void userOfflineHandler(ImOfflineDto imOfflineDto) {
+        Long userId = imOfflineDto.getUserId();
+        Integer roomId = imOfflineDto.getRoomId();
+        Integer appId = imOfflineDto.getAppId();
+        /**
+         * 退出时，移除用户和直播间的绑定关系
+         */
+        String cacheKey = livingProviderCacheKeyBuilder.buildLivingRoomUserSet(roomId , appId);
+        redisTemplate.opsForSet().remove(cacheKey , userId);
+        LOGGER.info("用户 {} 已经成功退出直播间：{}" , userId , roomId);
+    }
+
+    @Override
+    public List<Long> queryUserIdsByRoomId(LivingRoomReqDTO livingRoomReqDTO) {
+        Integer roomId = livingRoomReqDTO.getRoomId();
+        Integer appId = livingRoomReqDTO.getAppId();
+        String cacheKey = livingProviderCacheKeyBuilder.buildLivingRoomUserSet(roomId, appId);
+        // 使用 scan 命令 分批查询数据，否则 set 元素太多容易造成 redis 和网络阻塞(scan会自动分成多次请求去执行)
+        // scan 递增式遍历
+        Cursor<Object> cursor = redisTemplate.opsForSet().scan(cacheKey, ScanOptions.scanOptions().match("*").count(100).build());
+        List<Long> userIdList = new ArrayList<>();
+        while (cursor.hasNext()) {
+            userIdList.add((Long) cursor.next());
+        }
+        return userIdList;
+    }
 
     @Override
     public PageWrapper<LivingRoomRespDTO> list(LivingRoomReqDTO livingRoomReqDTO) {

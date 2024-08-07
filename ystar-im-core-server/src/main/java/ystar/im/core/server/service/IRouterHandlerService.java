@@ -3,6 +3,8 @@ package ystar.im.core.server.service;
 
 import ystar.im.Domain.Dto.ImMsgBody;
 
+import java.util.List;
+
 public interface IRouterHandlerService {
 
     /**
@@ -16,4 +18,6 @@ public interface IRouterHandlerService {
      * @param imMsgBody
      */
     boolean sendMsgToClient(ImMsgBody imMsgBody);
+
+    void batchSendMsg(List<ImMsgBody> imMsgBodyList);
 }

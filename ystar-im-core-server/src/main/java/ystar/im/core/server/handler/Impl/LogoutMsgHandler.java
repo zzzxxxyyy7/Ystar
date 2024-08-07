@@ -1,7 +1,6 @@
 package ystar.im.core.server.handler.Impl;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson2.JSONObject;
+import com.alibaba.fastjson2.JSON;
 import io.netty.channel.ChannelHandlerContext;
 import jakarta.annotation.Resource;
 import org.slf4j.Logger;
@@ -11,17 +10,16 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import ystar.im.Domain.Dto.ImMsgBody;
-import ystar.im.constant.ImConstants;
 import ystar.im.constant.ImMsgCodeEnum;
 import ystar.im.constant.RabbitMqConstants;
 import ystar.im.core.server.common.ChannelHandlerContextCache;
 import ystar.im.core.server.common.ImContextUtils;
 import ystar.im.core.server.common.ImMsg;
 import ystar.im.core.server.constants.ImCoreServerConstants;
+import ystar.im.core.server.dto.ImOfflineDto;
 import ystar.im.core.server.handler.SimpleHandler;
 import ystart.framework.redis.starter.key.ImCoreServerProviderCacheKeyBuilder;
 
-import java.util.concurrent.TimeUnit;
 
 /**
  * 登出消息处理器
@@ -44,15 +42,14 @@ public class LogoutMsgHandler implements SimpleHandler {
     public void handler(ChannelHandlerContext ctx, ImMsg imMsg) {
         Long userId = ImContextUtils.getUserId(ctx);
         Integer appId = ImContextUtils.getAppId(ctx);
-        if(userId == null || appId == null) {
-            LOGGER.error("attr error, imMsg is {}", imMsg);
-            //有可能是错误的消息包导致，直接放弃连接
+        if (userId == null || appId == null) {
+            LOGGER.error("attr error, imMsgBody is {}", new String(imMsg.getBody()));
+            // 有可能是错误的消息包导致，直接放弃连接
             ctx.close();
             throw new IllegalArgumentException("attr error");
         }
-
+        // 将IM消息回写给客户端
         logoutHandler(ctx, userId, appId);
-        sendLogoutMQ(userId , appId);
     }
 
     public void logoutHandler(ChannelHandlerContext ctx, Long userId, Integer appId) {
@@ -62,7 +59,10 @@ public class LogoutMsgHandler implements SimpleHandler {
         respBody.setData("true");
         ctx.writeAndFlush(ImMsg.build(ImMsgCodeEnum.IM_LOGOUT_MSG.getCode(), JSON.toJSONString(respBody)));
         LOGGER.info("[LogoutMsgHandler] logout success, userId is {}, appId is {}", userId, appId);
+
         handlerLogout(userId, appId);
+        sendLogoutMQ(ctx , userId , appId);
+
         ImContextUtils.removeUserId(ctx);
         ImContextUtils.removeAppId(ctx);
         ImContextUtils.removeRoomId(ctx);
@@ -74,16 +74,17 @@ public class LogoutMsgHandler implements SimpleHandler {
      * @param userId
      * @param appId
      */
-    private void sendLogoutMQ(Long userId , Integer appId) {
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("userId" , userId);
-        jsonObject.put("appId" , appId);
-        jsonObject.put("logoutTime" , System.currentTimeMillis());
+    private void sendLogoutMQ(ChannelHandlerContext ctx , Long userId , Integer appId) {
+        ImOfflineDto imOfflineDTO = new ImOfflineDto();
+        imOfflineDTO.setUserId(userId);
+        imOfflineDTO.setAppId(appId);
+        imOfflineDTO.setRoomId(ImContextUtils.getRoomId(ctx));
+        imOfflineDTO.setLogoutTime(System.currentTimeMillis());
 
         /**
          * MQ 投递消息到下游微服务
          */
-        Message message = new Message(jsonObject.toJSONString().getBytes());
+        Message message = new Message(JSON.toJSONString(imOfflineDTO).getBytes());
 
         try {
             rabbitTemplate.convertAndSend(RabbitMqConstants.Logout_QUEUE, RabbitMqConstants.Logout_ROUTINGKEY, message ,(msg -> {

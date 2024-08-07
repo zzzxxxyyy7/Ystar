@@ -1,7 +1,6 @@
 package ystar.im.core.server.handler.Impl;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson2.JSONObject;
+import com.alibaba.fastjson2.JSON;
 import io.micrometer.common.util.StringUtils;
 import io.netty.channel.ChannelHandlerContext;
 import jakarta.annotation.Resource;
@@ -21,6 +20,7 @@ import ystar.im.core.server.common.ChannelHandlerContextCache;
 import ystar.im.core.server.common.ImContextUtils;
 import ystar.im.core.server.common.ImMsg;
 import ystar.im.core.server.constants.ImCoreServerConstants;
+import ystar.im.core.server.dto.ImOnlineDto;
 import ystar.im.core.server.handler.SimpleHandler;
 import ystar.im.interfaces.ImTokenRpc;
 
@@ -75,7 +75,7 @@ public class LoginMsgHandler implements SimpleHandler {
         Long userId = imTokenRpc.getUserIdByToken(token);
         // 从RPC获取的 userId 和传递过来的 userId 相等，则没出现差错，允许建立连接
         if (userId != null && userId.equals(userIdFromMsg)) {
-            loginSuccessHandler(ctx, userId, appId);
+            loginSuccessHandler(ctx, userId, appId , null);
             return;
         }
 
@@ -90,15 +90,16 @@ public class LoginMsgHandler implements SimpleHandler {
      * @param userId
      * @param appId
      */
-    private void sendLoginMQ(Long userId , Integer appId) {
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("userId" , userId);
-        jsonObject.put("appId" , appId);
-        jsonObject.put("loginTime" , System.currentTimeMillis());
+    private void sendLoginMQ(Long userId , Integer appId , Integer roomId) {
+        ImOnlineDto imOnlineDto = new ImOnlineDto();
+        imOnlineDto.setUserId(userId);
+        imOnlineDto.setAppId(appId);
+        imOnlineDto.setRoomId(roomId);
+        imOnlineDto.setLoginTime(System.currentTimeMillis());
         /**
          * MQ 投递消息到下游微服务
          */
-        Message message = new Message(jsonObject.toJSONString().getBytes());
+        Message message = new Message(JSON.toJSONString(imOnlineDto).getBytes());
 
         try {
             rabbitTemplate.convertAndSend(RabbitMqConstants.Login_EXCHANGE, RabbitMqConstants.Login_ROUTINGKEY, message ,(msg -> {
@@ -114,7 +115,7 @@ public class LoginMsgHandler implements SimpleHandler {
     /**
      * 如果用户成功登录，就处理相关记录
      */
-    public void loginSuccessHandler(ChannelHandlerContext ctx, Long userId, Integer appId) {
+    public void loginSuccessHandler(ChannelHandlerContext ctx, Long userId, Integer appId , Integer roomId) {
         // 按照userId保存好相关的channel信息
         ChannelHandlerContextCache.put(userId, ctx);
         // 将userId保存到netty域信息中，用于正常/非正常logout的处理
@@ -128,10 +129,10 @@ public class LoginMsgHandler implements SimpleHandler {
         ImMsg respMsg = ImMsg.build(ImMsgCodeEnum.IM_LOGIN_MSG.getCode(), JSON.toJSONString(respBody));
         // 将im服务器的ip+端口地址保存到Redis，以供Router服务取出进行转发
         redisTemplate.opsForValue().set(ImCoreServerConstants.IM_BIND_IP_KEY + appId + ":" + userId,
-                ChannelHandlerContextCache.getServerIpAddress(),
+                ChannelHandlerContextCache.getServerIpAddress() + "%" + userId,
                 2 * ImConstants.DEFAULT_HEART_BEAT_GAP, TimeUnit.SECONDS);
         LOGGER.info("[LoginMsgHandler] login success, userId is {}, appId is {}", userId, appId);
         ctx.writeAndFlush(respMsg);
-        sendLoginMQ(userId , appId);
+        sendLoginMQ(userId , appId , roomId);
     }
 }

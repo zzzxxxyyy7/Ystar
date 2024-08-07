@@ -13,6 +13,7 @@ import ystar.im.core.server.common.ImMsg;
 import ystar.im.core.server.service.IMsgAckCheckService;
 import ystar.im.core.server.service.IRouterHandlerService;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -48,5 +49,14 @@ public class RouterHandlerServiceImpl implements IRouterHandlerService {
             return true;
         }
         return false;
+    }
+
+    /**
+     * 已经落到本地内存中了，在内存中做 for 循环已经没什么影响了
+     * @param imMsgBodyList
+     */
+    @Override
+    public void batchSendMsg(List<ImMsgBody> imMsgBodyList) {
+        imMsgBodyList.forEach(this::sendMsgToClient);
     }
 }

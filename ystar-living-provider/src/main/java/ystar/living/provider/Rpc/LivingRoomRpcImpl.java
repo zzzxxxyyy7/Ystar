@@ -1,21 +1,25 @@
 package ystar.living.provider.Rpc;
 
-
 import com.ystar.common.VO.PageWrapper;
 import jakarta.annotation.Resource;
 import org.apache.dubbo.config.annotation.DubboService;
-import ystar.living.Vo.req.LivingRoomReqVO;
-import ystar.living.Vo.resp.LivingRoomPageRespVO;
 import ystar.living.dto.LivingRoomReqDTO;
 import ystar.living.dto.LivingRoomRespDTO;
 import ystar.living.interfaces.ILivingRoomRpc;
 import ystar.living.provider.service.TLivingRoomService;
+
+import java.util.List;
 
 @DubboService
 public class LivingRoomRpcImpl implements ILivingRoomRpc {
 
     @Resource
     private TLivingRoomService tLivingRoomService;
+
+    @Override
+    public List<Long> queryUserIdsByRoomId(LivingRoomReqDTO livingRoomReqDTO) {
+        return tLivingRoomService.queryUserIdsByRoomId(livingRoomReqDTO);
+    }
 
     @Override
     public PageWrapper<LivingRoomRespDTO> list(LivingRoomReqDTO livingRoomReqDTO) {
@@ -41,7 +45,6 @@ public class LivingRoomRpcImpl implements ILivingRoomRpc {
     public boolean closeLiving(LivingRoomReqDTO livingRoomReqDTO) {
         return tLivingRoomService.closeLiving(livingRoomReqDTO);
     }
-
 
     @Override
     public LivingRoomRespDTO queryByRoomId(Integer roomId) {

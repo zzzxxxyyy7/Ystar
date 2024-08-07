@@ -51,6 +51,7 @@ public class BizImMsgHandler implements SimpleHandler {
         }
 
         ImMsgBody imMsgBody = JSON.parseObject(new String(body) , ImMsgBody.class);
+
         /**
          * 发送消息时候设置消息ID
          */
@@ -66,10 +67,12 @@ public class BizImMsgHandler implements SimpleHandler {
             msg.getMessageProperties().setDelay(1);
             return msg;
         }));
+
         /**
          * IM 服务器把消息推送给客户端了，记录在 Map 里
          */
         iMsgAckCheckService.recordMsgAck(imMsgBody , 1);
+
         /**
          * 发送延时消息
          */

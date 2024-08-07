@@ -17,9 +17,9 @@ public class MessageDTO implements Serializable {
     private Long userId;
 
     /**
-     * 通信目标用户id
+     * 发往的直播间ID
      */
-    private Long objectId;
+    private Integer roomId;
 
     /**
      * 消息类型

@@ -4,9 +4,14 @@ import com.ystar.common.VO.PageWrapper;
 import ystar.living.dto.LivingRoomReqDTO;
 import ystar.living.dto.LivingRoomRespDTO;
 
+import java.util.List;
+
 public interface ILivingRoomRpc {
 
-
+    /**
+     * 暴露一个接口，支持根据 roomId 批量查询出在直播间内的 userId 元素非常多，分段查询
+     */
+    List<Long> queryUserIdsByRoomId(LivingRoomReqDTO livingRoomReqDTO);
 
     /**
      * 开启直播间
