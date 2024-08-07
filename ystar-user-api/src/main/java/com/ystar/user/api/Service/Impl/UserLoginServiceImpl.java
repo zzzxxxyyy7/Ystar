@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import com.ystar.common.VO.WebResponseVO;
 import com.ystar.user.api.Service.IUserLoginService;
 import com.ystar.user.api.Vo.UserLoginVO;
+import com.ystar.user.api.error.YStarApiError;
 import com.ystar.user.dto.UserLoginDTO;
 import com.ystar.user.interfaces.IUserPhoneRPC;
 import io.micrometer.common.util.StringUtils;
@@ -16,6 +17,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 import ystar.auth.account.interfaces.IAccountTokenRPC;
+import ystar.framework.web.starter.Error.ErrorAssert;
 import ystar.msg.Constants.MsgSendResultEnum;
 import ystar.msg.Dto.MsgCheckDTO;
 import ystar.msg.Interfaces.ISmsRpc;
@@ -40,31 +42,21 @@ public class UserLoginServiceImpl implements IUserLoginService {
     @Override
     public WebResponseVO sendLoginCode(String phone) {
         // 参数校验
-        if (StringUtils.isEmpty(phone)) {
-            return WebResponseVO.errorParam("手机号不能为空");
-        }
-        if (!Pattern.matches(PHONE_REG, phone)) {
-            return WebResponseVO.errorParam("手机号格式错误");
-        }
+        ErrorAssert.isNotNull(phone, YStarApiError.PHONE_NOT_BLANK);
+        ErrorAssert.isTure(Pattern.matches(PHONE_REG, phone), YStarApiError.PHONE_IN_VALID);
         MsgSendResultEnum msgSendResultEnum = smsRpc.sendLoginCode(phone);
         if (msgSendResultEnum == MsgSendResultEnum.SEND_SUCCESS) {
             return WebResponseVO.success();
         }
-        return WebResponseVO.sysError(msgSendResultEnum.getDesc());
+        return WebResponseVO.sysError("短信发送太频繁，请稍后再试");
     }
 
     @Override
     public WebResponseVO login(String phone, Integer code, HttpServletResponse response) {
         // 参数校验
-        if (StringUtils.isEmpty(phone)) {
-            return WebResponseVO.errorParam("手机号不能为空");
-        }
-        if (!Pattern.matches(PHONE_REG, phone)) {
-            return WebResponseVO.errorParam("手机号格式错误");
-        }
-        if (code == null || code < 1000 || code > 10000) {
-            return WebResponseVO.errorParam("验证码格式异常");
-        }
+        ErrorAssert.isNotNull(phone, YStarApiError.PHONE_NOT_BLANK);
+        ErrorAssert.isTure(Pattern.matches(PHONE_REG, phone), YStarApiError.PHONE_IN_VALID);
+        ErrorAssert.isTure(code != null || code >= 1000, YStarApiError.LOGIN_CODE_IN_VALID);
         // 检查验证码是否匹配
         MsgCheckDTO msgCheckDTO = smsRpc.checkLoginCode(phone, code);
         if (!msgCheckDTO.isCheckStatus()) {// 校验没通过
