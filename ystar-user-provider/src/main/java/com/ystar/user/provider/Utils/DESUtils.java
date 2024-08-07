@@ -105,7 +105,7 @@ public class DESUtils {
     }
 
     public static void main(String[] args) throws Exception {
-        String phone = "17889289032";
+        String phone = "15523858794";
         String encryptStr = DESUtils.encrypt(phone);
         String decryStr = DESUtils.decrypt(encryptStr);
         System.out.println(encryptStr);

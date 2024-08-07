@@ -8,6 +8,8 @@ import com.ystar.common.VO.PageWrapper;
 import com.ystar.common.utils.CommonStatusEnum;
 import com.ystar.common.utils.ConvertBeanUtils;
 import jakarta.annotation.Resource;
+import org.redisson.api.RSet;
+import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -28,10 +30,7 @@ import ystar.living.provider.service.TLivingRoomService;
 import org.springframework.stereotype.Service;
 import ystart.framework.redis.starter.key.LivingProviderCacheKeyBuilder;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -92,11 +91,13 @@ public class TLivingRoomServiceImpl extends ServiceImpl<TLivingRoomMapper, TLivi
         String cacheKey = livingProviderCacheKeyBuilder.buildLivingRoomUserSet(roomId, appId);
         // 使用 scan 命令 分批查询数据，否则 set 元素太多容易造成 redis 和网络阻塞(scan会自动分成多次请求去执行)
         // scan 递增式遍历
-        Cursor<Object> cursor = redisTemplate.opsForSet().scan(cacheKey, ScanOptions.scanOptions().match("*").count(100).build());
         List<Long> userIdList = new ArrayList<>();
-        while (cursor.hasNext()) {
-            userIdList.add((Long) cursor.next());
+        Set<Object> members = redisTemplate.opsForSet().members(cacheKey);
+
+        if (members != null) {
+            members.forEach(x -> userIdList.add((Long) x));
         }
+
         return userIdList;
     }
 

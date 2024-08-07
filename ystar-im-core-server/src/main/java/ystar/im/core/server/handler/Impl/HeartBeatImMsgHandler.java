@@ -64,6 +64,7 @@ public class HeartBeatImMsgHandler implements SimpleHandler {
         respBody.setData("心跳信息");
         LOGGER.info("[心跳信息] heartbeat msg, userId is {}, appId is {}", userId, appId);
         ctx.writeAndFlush(ImMsg.build(ImMsgCodeEnum.IM_HEARTBEAT_MSG.getCode(), JSON.toJSONString(respBody)));
+        System.out.println(JSON.toJSONString(respBody).getBytes());
     }
 
     /**

@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ystar.framework.web.starter.context.YStarRequestContext;
+import ystar.living.Vo.resp.LivingRoomPageRespVO;
 
 @RestController
 @RequestMapping("/living")
@@ -20,7 +21,9 @@ public class LivingRoomController {
     public WebResponseVO list(LivingRoomReqVO livingRoomReqVO) {
         if (livingRoomReqVO == null || livingRoomReqVO.getType() == null) return WebResponseVO.errorParam("需要给定直播间类型");
         if (livingRoomReqVO.getPage() <= 0 || livingRoomReqVO.getPageSize() > 100) return WebResponseVO.errorParam("分页查询参数错误");
-        return WebResponseVO.success(iLivingRoomService.list(livingRoomReqVO));
+        LivingRoomPageRespVO list = iLivingRoomService.list(livingRoomReqVO);
+        System.out.println(list);
+        return WebResponseVO.success(list);
     }
 
     @PostMapping("startingLiving")

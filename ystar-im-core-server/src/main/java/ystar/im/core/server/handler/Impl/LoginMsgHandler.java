@@ -57,7 +57,7 @@ public class LoginMsgHandler implements SimpleHandler {
         byte[] body = imMsg.getBody();
         if (body == null || body.length == 0) {
             ctx.close();
-            LOGGER.error("body error, imMsg is {}", imMsg);
+            LOGGER.error("body error, imMsg is {}", new String(imMsg.getBody()));
             throw new IllegalArgumentException("body error");
         }
 
@@ -121,6 +121,7 @@ public class LoginMsgHandler implements SimpleHandler {
         // 将userId保存到netty域信息中，用于正常/非正常logout的处理
         ImContextUtils.setUserId(ctx, userId);
         ImContextUtils.setAppId(ctx, appId);
+        ImContextUtils.setRoomId(ctx, roomId);
         // 将im消息回写给客户端
         ImMsgBody respBody = new ImMsgBody();
         respBody.setAppId(AppIdEnum.YStar_LIVE_BIZ.getCode());
@@ -130,7 +131,7 @@ public class LoginMsgHandler implements SimpleHandler {
         // 将im服务器的ip+端口地址保存到Redis，以供Router服务取出进行转发
         redisTemplate.opsForValue().set(ImCoreServerConstants.IM_BIND_IP_KEY + appId + ":" + userId,
                 ChannelHandlerContextCache.getServerIpAddress() + "%" + userId,
-                2 * ImConstants.DEFAULT_HEART_BEAT_GAP, TimeUnit.SECONDS);
+                5 * ImConstants.DEFAULT_HEART_BEAT_GAP, TimeUnit.SECONDS);
         LOGGER.info("[LoginMsgHandler] login success, userId is {}, appId is {}", userId, appId);
         ctx.writeAndFlush(respMsg);
         sendLoginMQ(userId , appId , roomId);

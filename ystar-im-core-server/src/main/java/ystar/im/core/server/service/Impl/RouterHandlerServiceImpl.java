@@ -41,7 +41,8 @@ public class RouterHandlerServiceImpl implements IRouterHandlerService {
 
         if (ctx != null) {
             ImMsg respMsg = ImMsg.build(ImMsgCodeEnum.IM_BIZ_MSG.getCode(), JSON.toJSONString(imMsgBody));
-
+            System.out.println(respMsg);
+            System.out.println(imMsgBody);
             LOGGER.info("已经成功收到回调消息，并且写回 channel");
 
             ctx.writeAndFlush(respMsg);

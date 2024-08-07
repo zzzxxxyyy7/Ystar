@@ -90,14 +90,16 @@ public class ImRouterServiceImpl implements ImRouterService {
         List<String> ipList = redisTemplate.opsForValue().multiGet(redisKey);
         Map<String , List<Long>> userMap = new HashMap<>();
 
-        ipList.forEach(ip -> {
-            String currentIp = ip.substring(ip.indexOf("%"));
-            Long userId = Long.valueOf(ip.substring(ip.indexOf("%" , -1)));
-            List<Long> userIdLists = userMap.get(currentIp);
-            if (userIdLists == null) userIdLists = new ArrayList<>();
-            userIdLists.add(userId);
-            userMap.put(ip , userIdLists);
-        });
+        if (ipList != null) {
+            ipList.forEach(ip -> {
+                String currentIp = ip.substring(0, ip.indexOf("%"));
+                Long userId = Long.valueOf(ip.substring(ip.indexOf("%") + 1));
+
+                List<Long> currentUserIdList = userMap.getOrDefault(currentIp, new ArrayList<>());
+                currentUserIdList.add(userId);
+                userMap.put(currentIp, currentUserIdList);
+            });
+        }
 
         /**
          * 将同一台 IM 服务器对应的数据封装到同一个 List 集合中
@@ -109,6 +111,7 @@ public class ImRouterServiceImpl implements ImRouterService {
             for (Long ipBindUserId : ipBindUserIds) {
                 ImMsgBody imMsgBody = userIdMsgMap.get(ipBindUserId);
                 batchSendMsgGroupByIpList.add(imMsgBody);
+                System.out.println(imMsgBody);
             }
             iRouterHandlerRpc.batchSendMsg(batchSendMsgGroupByIpList);
         }

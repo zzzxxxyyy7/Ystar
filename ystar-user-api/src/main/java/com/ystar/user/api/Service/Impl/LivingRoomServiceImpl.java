@@ -1,6 +1,7 @@
 package com.ystar.user.api.Service.Impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.alibaba.cloud.commons.lang.StringUtils;
 import com.ystar.common.VO.PageWrapper;
 import com.ystar.common.utils.CommonStatusEnum;
 import com.ystar.common.utils.ConvertBeanUtils;
@@ -18,8 +19,11 @@ import ystar.living.dto.LivingRoomReqDTO;
 import ystar.living.dto.LivingRoomRespDTO;
 import ystar.living.interfaces.ILivingRoomRpc;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 @Service
 public class LivingRoomServiceImpl implements ILivingRoomService {
@@ -90,19 +94,30 @@ public class LivingRoomServiceImpl implements ILivingRoomService {
     @Override
     public LivingRoomInitVO anchorConfig(Long userId, Integer roomId) {
         LivingRoomRespDTO respDTO = iLivingRoomRpc.queryByRoomId(roomId);
+
+        // UserDTO userDTO = userRpc.getUserById(userId);
+        Map<Long, UserDTO> userDTOMap = iUserRpc.batchQueryUserInfo(Arrays.asList(respDTO.getAnchorId(), userId).stream().distinct().collect(Collectors.toList()));
+        UserDTO anchor = userDTOMap.get(respDTO.getAnchorId());
+        UserDTO watcher = userDTOMap.get(userId);
+
         LivingRoomInitVO respVO = new LivingRoomInitVO();
-        if (respDTO == null || respDTO.getAnchorId() == null || userId == null) {
+        respVO.setAnchorNickName(anchor.getNickName());
+        respVO.setWatcherNickName(watcher.getNickName());
+        respVO.setUserId(userId);
+
+        respVO.setAvatar(StringUtils.isEmpty(anchor.getAvatar()) ? "https://cdn.acwing.com/media/user/profile/photo/461757_lg_ae724ef652.jpg" : anchor.getAvatar());
+        respVO.setWatcherAvatar(watcher.getAvatar());
+
+        if (respDTO.getAnchorId() == null || userId == null) {
             //直播间不存在，设置roomId为-1
             respVO.setRoomId(-1);
         }else {
             respVO.setRoomId(respDTO.getId());
-            respVO.setRoomName(respDTO.getRoomName());
             respVO.setAnchorId(respDTO.getAnchorId());
             respVO.setAnchor(respDTO.getAnchorId().equals(userId));
-            respVO.setAnchorImg(respDTO.getCovertImg());
-            respVO.setDefaultBgImg(respDTO.getCovertImg());
-            respVO.setUserId(userId);
         }
+
+        respVO.setDefaultBgImg("https://cdn.acwing.com/media/user/profile/photo/311396_lg_6c9d3a738b.jpg");
         return respVO;
     }
 }
