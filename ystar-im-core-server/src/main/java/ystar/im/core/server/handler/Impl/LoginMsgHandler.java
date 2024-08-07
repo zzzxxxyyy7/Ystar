@@ -1,19 +1,22 @@
 package ystar.im.core.server.handler.Impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import io.micrometer.common.util.StringUtils;
 import io.netty.channel.ChannelHandlerContext;
 import jakarta.annotation.Resource;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import ystar.im.Domain.Dto.ImMsgBody;
 import ystar.im.constant.AppIdEnum;
 import ystar.im.constant.ImConstants;
 import ystar.im.constant.ImMsgCodeEnum;
+import ystar.im.constant.RabbitMqConstants;
 import ystar.im.core.server.common.ChannelHandlerContextCache;
 import ystar.im.core.server.common.ImContextUtils;
 import ystar.im.core.server.common.ImMsg;
@@ -21,7 +24,6 @@ import ystar.im.core.server.constants.ImCoreServerConstants;
 import ystar.im.core.server.handler.SimpleHandler;
 import ystar.im.interfaces.ImTokenRpc;
 
-import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -37,6 +39,9 @@ public class LoginMsgHandler implements SimpleHandler {
 
     @Resource
     private RedisTemplate<String , String> redisTemplate;
+
+    @Resource
+    private RabbitTemplate rabbitTemplate;
 
     /**
      * 想要建立连接的话，我们需要进行一系列的参数校验，
@@ -73,10 +78,37 @@ public class LoginMsgHandler implements SimpleHandler {
             loginSuccessHandler(ctx, userId, appId);
             return;
         }
+
         // 登录信息不正确 ， 不允许建立连接 ， 关闭 Channel
         ctx.close();
         LOGGER.error("token error, imMsg is {}", imMsg);
         throw new IllegalArgumentException("token error");
+    }
+
+    /**
+     * 供给下游服务获取用户登录信息
+     * @param userId
+     * @param appId
+     */
+    private void sendLoginMQ(Long userId , Integer appId) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("userId" , userId);
+        jsonObject.put("appId" , appId);
+        jsonObject.put("loginTime" , System.currentTimeMillis());
+        /**
+         * MQ 投递消息到下游微服务
+         */
+        Message message = new Message(jsonObject.toJSONString().getBytes());
+
+        try {
+            rabbitTemplate.convertAndSend(RabbitMqConstants.Login_EXCHANGE, RabbitMqConstants.Login_ROUTINGKEY, message ,(msg -> {
+                //发送消息 并设置delayedTime
+                msg.getMessageProperties().setDelay(0);
+                return msg;
+            }));
+        } catch (Exception e) {
+            LOGGER.info("[登录消息传递下游服务 MQ 发送失败]:{}" , e.getMessage());
+        }
     }
 
     /**
@@ -100,5 +132,6 @@ public class LoginMsgHandler implements SimpleHandler {
                 2 * ImConstants.DEFAULT_HEART_BEAT_GAP, TimeUnit.SECONDS);
         LOGGER.info("[LoginMsgHandler] login success, userId is {}, appId is {}", userId, appId);
         ctx.writeAndFlush(respMsg);
+        sendLoginMQ(userId , appId);
     }
 }

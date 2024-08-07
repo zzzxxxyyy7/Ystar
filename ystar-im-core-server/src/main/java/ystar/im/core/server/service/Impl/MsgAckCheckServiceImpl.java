@@ -44,7 +44,6 @@ public class MsgAckCheckServiceImpl implements IMsgAckCheckService {
     @Override
     public void recordMsgAck(ImMsgBody imMsgBody, int times) {
         String redisKey = cacheKeyBuilder.buildImAckMapKey(imMsgBody.getUserId(), imMsgBody.getAppId());
-        System.out.println(redisKey);
         // 记录未被确认的消息id以及重试次数
         redisTemplate.opsForHash().put(redisKey, imMsgBody.getMsgId(), times);
     }

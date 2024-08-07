@@ -24,36 +24,6 @@ public class RabbitMqConfig {
         return jackson2JsonMessageConverter;
     }
 
-//    //声明延迟交换机
-//    @Bean
-//    public CustomExchange delayedExchange(){
-//        HashMap<String, Object> arguments = new HashMap<>();
-//        //自定义交换机的类型
-//        arguments.put("x-delayed-type", "direct");
-//        /**
-//         * 交换机名
-//         * 交换机类型
-//         * 持久化
-//         * 自动删除
-//         */
-//        return new CustomExchange(RabbitMqConstants.DELAYED_EXCHANGE,"x-delayed-message",true,false,arguments);
-//    }
-//
-//    /**
-//     * 声明队列
-//     * @return
-//     */
-//    @Bean
-//    public Queue delayedQueue(){
-//        return new Queue(RabbitMqConstants.DELAYED_QUEUE);
-//    }
-//
-//    //延迟交换机和队列绑定
-//    @Bean
-//    public Binding delayedQueueBindingDelayedExchange(Queue delayedQueue, CustomExchange delayedExchange){
-//        return BindingBuilder.bind(delayedQueue).to(delayedExchange).with(RabbitMqConstants.DELAYED_ROUTINGKEY).noargs();
-//    }
-
     /**
      * ACK消息确认机制
      * @return
@@ -70,7 +40,7 @@ public class RabbitMqConfig {
          * 持久化
          * 自动删除
          */
-        return new CustomExchange(RabbitMqConstants.ACK_EXCHANGE,"x-delayed-message",true,false,arguments);
+        return new CustomExchange(RabbitMqConstants.Logout_EXCHANGE,"x-delayed-message",true,false,arguments);
     }
 
     /**
@@ -79,12 +49,12 @@ public class RabbitMqConfig {
      */
     @Bean
     public Queue AckQueue(){
-        return new Queue(RabbitMqConstants.ACK_QUEUE , true , false , false);
+        return new Queue(RabbitMqConstants.Logout_QUEUE , true , false , false);
     }
 
     //延迟交换机和队列绑定
     @Bean
     public Binding AckQueueBindingDelayedExchange(Queue delayedQueue, CustomExchange delayedExchange){
-        return BindingBuilder.bind(delayedQueue).to(delayedExchange).with(RabbitMqConstants.ACK_ROUTINGKEY).noargs();
+        return BindingBuilder.bind(delayedQueue).to(delayedExchange).with(RabbitMqConstants.Logout_ROUTINGKEY).noargs();
     }
 }

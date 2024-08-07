@@ -1,12 +1,12 @@
 package ystar.living.interfaces;
 
 import com.ystar.common.VO.PageWrapper;
-import ystar.living.Vo.req.LivingRoomReqVO;
-import ystar.living.Vo.resp.LivingRoomPageRespVO;
 import ystar.living.dto.LivingRoomReqDTO;
 import ystar.living.dto.LivingRoomRespDTO;
 
 public interface ILivingRoomRpc {
+
+
 
     /**
      * 开启直播间

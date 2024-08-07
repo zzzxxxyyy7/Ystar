@@ -1,6 +1,6 @@
 package ystar.im.core.server.handler.Impl;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
 import io.netty.channel.ChannelHandlerContext;
 import jakarta.annotation.Resource;
 import org.slf4j.Logger;
@@ -9,7 +9,6 @@ import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 import ystar.im.Domain.Dto.ImMsgBody;
-import ystar.im.constant.ImMsgCodeEnum;
 import ystar.im.constant.RabbitMqConstants;
 import ystar.im.core.server.common.ImContextUtils;
 import ystar.im.core.server.common.ImMsg;
@@ -51,7 +50,12 @@ public class BizImMsgHandler implements SimpleHandler {
             return;
         }
 
-        ImMsgBody imMsgBody = com.alibaba.fastjson2.JSON.parseObject(new String(body) , ImMsgBody.class);
+        ImMsgBody imMsgBody = JSON.parseObject(new String(body) , ImMsgBody.class);
+        /**
+         * 发送消息时候设置消息ID
+         */
+        imMsgBody.setMsgId(UUID.randomUUID().toString());
+        body = JSON.toJSONBytes(imMsgBody);
 
         /**
          * MQ 投递消息到下游微服务
@@ -62,7 +66,6 @@ public class BizImMsgHandler implements SimpleHandler {
             msg.getMessageProperties().setDelay(1);
             return msg;
         }));
-
         /**
          * IM 服务器把消息推送给客户端了，记录在 Map 里
          */
