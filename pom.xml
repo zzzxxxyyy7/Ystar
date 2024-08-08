@@ -32,6 +32,9 @@
       <module>ystar-im-router-provider</module>
       <module>ystar-living-interface</module>
       <module>ystar-living-provider</module>
+      <module>ystar-live-gift-interface</module>
+      <module>ystar-live-gift-provider</module>
+      <module>ystar-live-bank-interface</module>
   </modules>
 
     <parent>

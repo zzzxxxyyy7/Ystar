@@ -5,3 +5,4 @@ ystart.framework.redis.starter.key.AccountProviderCacheKeyBuilder
 ystart.framework.redis.starter.key.ImProviderCacheKeyBuilder
 ystart.framework.redis.starter.key.ImCoreServerProviderCacheKeyBuilder
 ystart.framework.redis.starter.key.LivingProviderCacheKeyBuilder
+ystart.framework.redis.starter.key.GiftProviderCacheKeyBuilder

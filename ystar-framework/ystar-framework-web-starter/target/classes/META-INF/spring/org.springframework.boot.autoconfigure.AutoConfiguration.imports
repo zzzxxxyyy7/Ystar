@@ -1,1 +1,2 @@
 ystar.framework.web.starter.Config.WebConfig
+ystar.framework.web.starter.Error.GlobalExceptionHandler
