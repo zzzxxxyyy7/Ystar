@@ -6,3 +6,4 @@ ystart.framework.redis.starter.key.ImProviderCacheKeyBuilder
 ystart.framework.redis.starter.key.ImCoreServerProviderCacheKeyBuilder
 ystart.framework.redis.starter.key.LivingProviderCacheKeyBuilder
 ystart.framework.redis.starter.key.GiftProviderCacheKeyBuilder
+ystart.framework.redis.starter.key.BankProviderCacheKeyBuilder

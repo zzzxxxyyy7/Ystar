@@ -8,7 +8,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 @Data
-public class QiyuCurrencyAccountDTO implements Serializable {
+public class YStarCurrencyAccountDTO implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 4594540862190026761L;
