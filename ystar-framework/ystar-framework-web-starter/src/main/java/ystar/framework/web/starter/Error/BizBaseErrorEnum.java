@@ -8,6 +8,7 @@ public enum BizBaseErrorEnum implements YStarBaseError {
     PARAM_ERROR(100001,"参数异常"),
     TOKEN_ERROR(100002,"用户token异常");
 
+
     private int errorCode;
     private String errorMsg;
 

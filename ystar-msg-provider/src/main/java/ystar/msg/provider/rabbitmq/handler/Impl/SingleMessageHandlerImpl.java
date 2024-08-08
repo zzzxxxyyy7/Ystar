@@ -11,7 +11,7 @@ import ystar.im.constant.AppIdEnum;
 import ystar.im.router.interfaces.ImRouterRpc;
 import ystar.living.dto.LivingRoomReqDTO;
 import ystar.living.interfaces.ILivingRoomRpc;
-import ystar.msg.Constants.ImMsgBizCodeEum;
+import ystar.im.router.Constants.ImMsgBizCodeEnum;
 import ystar.msg.provider.Domain.Dto.MessageDTO;
 import ystar.msg.provider.Service.Impl.ISmsServiceImpl;
 import ystar.msg.provider.rabbitmq.handler.MessageHandler;
@@ -35,7 +35,7 @@ public class SingleMessageHandlerImpl implements MessageHandler {
         int bizCode = imMsgBody.getBizCode();
 
         // 直播间聊天消息
-        if (ImMsgBizCodeEum.LIVING_ROOM_IM_CHAT_MSG_BIZ.getCode() == bizCode) {
+        if (ImMsgBizCodeEnum.LIVING_ROOM_IM_CHAT_MSG_BIZ.getCode() == bizCode) {
             // 一个人发送，N 个人接收，根据 roomId 获取对应直播间内所有的 userId，构建新的消息体，发送给 N 个人
             MessageDTO messageDto = JSON.parseObject(imMsgBody.getData() , MessageDTO.class);
             // TODO 直播间业务 后续再做处理
@@ -55,7 +55,7 @@ public class SingleMessageHandlerImpl implements MessageHandler {
                 ImMsgBody respMsg = new ImMsgBody();
                 respMsg.setUserId(userId);
                 respMsg.setAppId(AppIdEnum.YStar_LIVE_BIZ.getCode());
-                respMsg.setBizCode(ImMsgBizCodeEum.LIVING_ROOM_IM_CHAT_MSG_BIZ.getCode());
+                respMsg.setBizCode(ImMsgBizCodeEnum.LIVING_ROOM_IM_CHAT_MSG_BIZ.getCode());
                 respMsg.setMsgId(imMsgBody.getMsgId());
                 // 测试 , 存储Data信息
                 JSONObject jsonObject = new JSONObject();

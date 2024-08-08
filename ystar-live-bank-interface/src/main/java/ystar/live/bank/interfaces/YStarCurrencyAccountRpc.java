@@ -1,5 +1,7 @@
 package ystar.live.bank.interfaces;
 
+import ystar.live.bank.dto.AccountTradeReqDTO;
+import ystar.live.bank.dto.AccountTradeRespDTO;
 import ystar.live.bank.dto.YStarCurrencyAccountDTO;
 
 public interface YStarCurrencyAccountRpc {
@@ -23,4 +25,14 @@ public interface YStarCurrencyAccountRpc {
      * 查询账户
      */
     YStarCurrencyAccountDTO getByUserId(Long userId);
+
+    /**
+     * 查询账户余额
+     */
+    Integer getBalance(Long userId);
+
+    /**
+     * 专门给送礼用的扣减库存逻辑，进行了高并发优化
+     */
+    AccountTradeRespDTO consumeForSendGift(AccountTradeReqDTO accountTradeReqDTO);
 }

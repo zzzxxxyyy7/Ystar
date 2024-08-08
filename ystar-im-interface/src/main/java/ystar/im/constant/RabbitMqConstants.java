@@ -42,4 +42,14 @@ public class RabbitMqConstants {
     public static final String Logout_QUEUE ="Logout_queue";
     //routeingKey
     public static final String Logout_ROUTINGKEY ="Logout_routingKey";
+
+    /**
+     * 赠送礼物消息下游传递
+     */
+    //交换机
+    public static final String SendGift_EXCHANGE ="Logout_exchange";
+    //队列
+    public static final String SendGift_QUEUE ="Logout_queue";
+    //routeingKey
+    public static final String SendGift_ROUTINGKEY ="Logout_routingKey";
 }

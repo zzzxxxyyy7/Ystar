@@ -40,7 +40,7 @@ public class RabbitMqConfig {
          * 持久化
          * 自动删除
          */
-        return new CustomExchange(RabbitMqConstants.Logout_EXCHANGE,"x-delayed-message",true,false,arguments);
+        return new CustomExchange(RabbitMqConstants.SendGift_EXCHANGE,"x-delayed-message",true,false,arguments);
     }
 
     /**
@@ -49,12 +49,12 @@ public class RabbitMqConfig {
      */
     @Bean
     public Queue AckQueue(){
-        return new Queue(RabbitMqConstants.Logout_QUEUE , true , false , false);
+        return new Queue(RabbitMqConstants.SendGift_QUEUE , true , false , false);
     }
 
     //延迟交换机和队列绑定
     @Bean
     public Binding AckQueueBindingDelayedExchange(Queue delayedQueue, CustomExchange delayedExchange){
-        return BindingBuilder.bind(delayedQueue).to(delayedExchange).with(RabbitMqConstants.Logout_ROUTINGKEY).noargs();
+        return BindingBuilder.bind(delayedQueue).to(delayedExchange).with(RabbitMqConstants.SendGift_ROUTINGKEY).noargs();
     }
 }
