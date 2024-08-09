@@ -28,4 +28,9 @@ public class PayOrderRpcImpl implements IPayOrderRpc {
     public boolean updateOrderStatus(String orderId, Integer status) {
         return payOrderService.updateOrderStatus(orderId, status);
     }
+
+    @Override
+    public boolean payNotify(PayOrderDTO payOrderDTO) {
+        return payOrderService.payNotify(payOrderDTO);
+    }
 }

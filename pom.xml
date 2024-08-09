@@ -36,6 +36,7 @@
       <module>ystar-live-gift-provider</module>
       <module>ystar-live-bank-interface</module>
       <module>ystar-live-bank-provider</module>
+      <module>ystar.live.bank.api</module>
   </modules>
 
     <parent>

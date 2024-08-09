@@ -18,4 +18,9 @@ public interface IPayOrderRpc {
      * 更新订单状态
      */
     boolean updateOrderStatus(String orderId, Integer status);
+
+    /**
+     * 支付回调请求的接口
+     */
+    boolean payNotify(PayOrderDTO payOrderDTO);
 }

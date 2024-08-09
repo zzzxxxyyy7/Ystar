@@ -1,6 +1,7 @@
 package ystar.live.bank.service;
 
 import ystar.live.bank.Domain.Po.PayOrderPO;
+import ystar.live.bank.dto.PayOrderDTO;
 
 public interface IPayOrderService {
     
@@ -23,4 +24,9 @@ public interface IPayOrderService {
      * 更新订单状态
      */
     boolean updateOrderStatus(String orderId, Integer status);
+
+    /**
+     * 支付回调请求的接口
+     */
+    boolean payNotify(PayOrderDTO payOrderDTO);
 }
