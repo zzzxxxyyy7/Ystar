@@ -1,0 +1,21 @@
+package ystar.live.bank.interfaces;
+
+import ystar.live.bank.dto.PayOrderDTO;
+
+public interface IPayOrderRpc {
+
+    /**
+     *插入订单 ，返回orderId
+     */
+    String insertOne(PayOrderDTO payOrderDTO);
+
+    /**
+     * 根据主键id更新订单状态
+     */
+    boolean updateOrderStatus(Long id, Integer status);
+
+    /**
+     * 更新订单状态
+     */
+    boolean updateOrderStatus(String orderId, Integer status);
+}

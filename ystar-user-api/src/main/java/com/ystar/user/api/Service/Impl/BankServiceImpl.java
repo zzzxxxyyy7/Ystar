@@ -21,7 +21,7 @@ public class BankServiceImpl implements IBankService {
     private IPayProductRpc payProductRpc;
 
     @DubboReference
-    private YStarCurrencyAccountRpc qiyuCurrencyAccountRpc;
+    private YStarCurrencyAccountRpc yStarCurrencyAccountRpc;
 
     @Override
     public PayProductVO products(Integer type) {
@@ -37,7 +37,7 @@ public class BankServiceImpl implements IBankService {
         }
 
         PayProductVO payProductVO = new PayProductVO();
-        payProductVO.setCurrentBalance(qiyuCurrencyAccountRpc.getBalance(YStarRequestContext.getUserId()));
+        payProductVO.setCurrentBalance(yStarCurrencyAccountRpc.getBalance(YStarRequestContext.getUserId()));
         payProductVO.setPayProductItemVOList(payProductItemVOS);
         return payProductVO;
     }
