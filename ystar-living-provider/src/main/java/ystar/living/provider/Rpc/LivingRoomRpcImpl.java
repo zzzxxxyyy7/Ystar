@@ -3,6 +3,7 @@ package ystar.living.provider.Rpc;
 import com.ystar.common.VO.PageWrapper;
 import jakarta.annotation.Resource;
 import org.apache.dubbo.config.annotation.DubboService;
+import ystar.living.dto.LivingPkRespDTO;
 import ystar.living.dto.LivingRoomReqDTO;
 import ystar.living.dto.LivingRoomRespDTO;
 import ystar.living.interfaces.ILivingRoomRpc;
@@ -49,5 +50,20 @@ public class LivingRoomRpcImpl implements ILivingRoomRpc {
     @Override
     public LivingRoomRespDTO queryByRoomId(Integer roomId) {
         return tLivingRoomService.queryByRoomId(roomId);
+    }
+
+    @Override
+    public LivingPkRespDTO onlinePK(LivingRoomReqDTO livingRoomReqDTO) {
+        return tLivingRoomService.onlinePk(livingRoomReqDTO);
+    }
+
+    @Override
+    public boolean offlinePk(LivingRoomReqDTO livingRoomReqDTO) {
+        return tLivingRoomService.offlinePk(livingRoomReqDTO);
+    }
+
+    @Override
+    public Long queryOnlinePkUserId(Integer roomId) {
+        return tLivingRoomService.queryOnlinePkUserId(roomId);
     }
 }

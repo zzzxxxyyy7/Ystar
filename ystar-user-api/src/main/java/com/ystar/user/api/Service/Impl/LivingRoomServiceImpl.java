@@ -2,11 +2,14 @@ package com.ystar.user.api.Service.Impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.alibaba.cloud.commons.lang.StringUtils;
+import com.ystar.common.VO.OnlinePKReqVO;
 import com.ystar.common.VO.PageWrapper;
-import com.ystar.common.utils.CommonStatusEnum;
 import com.ystar.common.utils.ConvertBeanUtils;
 import com.ystar.user.api.Service.ILivingRoomService;
 import com.ystar.user.api.Vo.LivingRoomInitVO;
+import ystar.framework.web.starter.Error.ErrorAssert;
+import ystar.framework.web.starter.Error.YStarErrorException;
+import ystar.im.constant.AppIdEnum;
 import ystar.living.Vo.req.LivingRoomReqVO;
 import com.ystar.user.dto.UserDTO;
 import com.ystar.user.interfaces.IUserRpc;
@@ -15,12 +18,12 @@ import org.springframework.stereotype.Service;
 import ystar.framework.web.starter.context.YStarRequestContext;
 import ystar.living.Vo.resp.LivingRoomPageRespVO;
 import ystar.living.Vo.resp.LivingRoomRespVO;
+import ystar.living.dto.LivingPkRespDTO;
 import ystar.living.dto.LivingRoomReqDTO;
 import ystar.living.dto.LivingRoomRespDTO;
 import ystar.living.interfaces.ILivingRoomRpc;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -33,6 +36,18 @@ public class LivingRoomServiceImpl implements ILivingRoomService {
 
     @DubboReference
     private IUserRpc iUserRpc;
+
+    @Override
+    public boolean onlinePK(OnlinePKReqVO onlinePKReqVO) {
+
+        LivingRoomReqDTO reqDTO = new LivingRoomReqDTO();
+        reqDTO.setRoomId(onlinePKReqVO.getRoomId());
+        reqDTO.setAppId(AppIdEnum.YStar_LIVE_BIZ.getCode());
+        reqDTO.setPkObjId(YStarRequestContext.getUserId());
+        LivingPkRespDTO tryOnlineStatus = iLivingRoomRpc.onlinePK(reqDTO);
+        ErrorAssert.isTure(tryOnlineStatus.isOnlineStatus(), new YStarErrorException(-1, tryOnlineStatus.getMsg()));
+        return true;
+    }
 
     /**
      * 查询正在直播的列表
@@ -95,7 +110,6 @@ public class LivingRoomServiceImpl implements ILivingRoomService {
     public LivingRoomInitVO anchorConfig(Long userId, Integer roomId) {
         LivingRoomRespDTO respDTO = iLivingRoomRpc.queryByRoomId(roomId);
 
-        // UserDTO userDTO = userRpc.getUserById(userId);
         Map<Long, UserDTO> userDTOMap = iUserRpc.batchQueryUserInfo(Arrays.asList(respDTO.getAnchorId(), userId).stream().distinct().collect(Collectors.toList()));
         UserDTO anchor = userDTOMap.get(respDTO.getAnchorId());
         UserDTO watcher = userDTOMap.get(userId);

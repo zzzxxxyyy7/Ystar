@@ -1,6 +1,7 @@
 package ystar.living.provider.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -18,8 +19,13 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import ystar.im.Domain.Dto.ImMsgBody;
+import ystar.im.constant.AppIdEnum;
 import ystar.im.core.server.dto.ImOfflineDto;
 import ystar.im.core.server.dto.ImOnlineDto;
+import ystar.im.router.Constants.ImMsgBizCodeEnum;
+import ystar.im.router.interfaces.ImRouterRpc;
+import ystar.living.dto.LivingPkRespDTO;
 import ystar.living.dto.LivingRoomReqDTO;
 import ystar.living.dto.LivingRoomRespDTO;
 import ystar.living.provider.Domain.Mapper.TLivingRoomMapper;
@@ -32,6 +38,7 @@ import ystart.framework.redis.starter.key.LivingProviderCacheKeyBuilder;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
 * @author Rhss
@@ -56,15 +63,114 @@ public class TLivingRoomServiceImpl extends ServiceImpl<TLivingRoomMapper, TLivi
     @Resource
     private LivingProviderCacheKeyBuilder livingProviderCacheKeyBuilder;
 
+    @Resource
+    private LivingProviderCacheKeyBuilder cacheKeyBuilder;
+
+    @Resource
+    private ImRouterRpc imRouterRpc;
+
+    /**
+     * 接入 PK
+     * @param livingRoomReqDTO
+     * @return
+     */
+    @Override
+    public LivingPkRespDTO onlinePk(LivingRoomReqDTO livingRoomReqDTO) {
+        LivingRoomRespDTO currentLivingRoom = this.queryByRoomId(livingRoomReqDTO.getRoomId());
+        LivingPkRespDTO respDTO = new LivingPkRespDTO();
+        respDTO.setOnlineStatus(false);
+
+        if (currentLivingRoom.getAnchorId().equals(livingRoomReqDTO.getPkObjId())) {
+            respDTO.setMsg("主播不可以连线参与PK");
+            return respDTO;
+        }
+
+        String cacheKey = cacheKeyBuilder.buildLivingOnlinePk(livingRoomReqDTO.getRoomId());
+
+        // 使用setIfAbsent防止被后来者覆盖
+        Boolean tryOnline = redisTemplate.opsForValue().setIfAbsent(cacheKey, livingRoomReqDTO.getPkObjId(), 12L, TimeUnit.HOURS);
+        if (Boolean.TRUE.equals(tryOnline)) {
+            // 通知直播间所有人，有人上线PK了
+            List<Long> userIdList = this.queryUserIdsByRoomId(livingRoomReqDTO);
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("pkObjId", livingRoomReqDTO.getPkObjId());
+            jsonObject.put("pkObjAvatar", "../svga/img/爱心.png");
+            new Thread(() -> this.batchSendImMsg(userIdList, ImMsgBizCodeEnum.LIVING_ROOM_PK_ONLINE.getCode(), jsonObject));
+            respDTO.setMsg("连线成功");
+            respDTO.setOnlineStatus(true);
+            return respDTO;
+        }
+
+        respDTO.setMsg("目前有人在线，请稍后再试");
+        return respDTO;
+    }
+
+    /**
+     * 除了礼物服务需要批量通知、直播间连线 PK 服务也需要批量通知
+     * @param userIdList
+     * @param bizCode
+     * @param jsonObject
+     */
+    private void batchSendImMsg(List<Long> userIdList, Integer bizCode, JSONObject jsonObject) {
+        List<ImMsgBody> imMsgBodies = userIdList.stream().map(userId -> {
+            ImMsgBody imMsgBody = new ImMsgBody();
+            imMsgBody.setAppId(AppIdEnum.YStar_LIVE_BIZ.getCode());
+            imMsgBody.setBizCode(bizCode);
+            imMsgBody.setData(jsonObject.toJSONString());
+            imMsgBody.setUserId(userId);
+            return imMsgBody;
+        }).collect(Collectors.toList());
+        imRouterRpc.batchSendMsg(imMsgBodies);
+    }
+
+    /**
+     * 断开 PK
+     * @param livingRoomReqDTO
+     * @return
+     */
+    @Override
+    public boolean offlinePk(LivingRoomReqDTO livingRoomReqDTO) {
+        Integer roomId = livingRoomReqDTO.getRoomId();
+        Long pkObjId = this.queryOnlinePkUserId(roomId);
+
+        // 如果他是pkObjId本人，才删除
+        if (!livingRoomReqDTO.getPkObjId().equals(pkObjId)) {
+            System.out.println("删除失败");
+            return false;
+        }
+
+        System.out.println("删除成功");
+        String cacheKey = cacheKeyBuilder.buildLivingOnlinePk(roomId);
+
+        //删除PK进度条值缓存
+        redisTemplate.delete("ystar-live-gift-provider:living_pk_key:" + roomId);
+
+        //删除PK直播间pkObjId缓存
+        return Boolean.TRUE.equals(redisTemplate.delete(cacheKey));
+    }
+
+    /**
+     * 查询直播间发起 PK 的 userId
+     * @param roomId
+     * @return
+     */
+    @Override
+    public Long queryOnlinePkUserId(Integer roomId) {
+        String cacheKey = cacheKeyBuilder.buildLivingOnlinePk(roomId);
+        return (Long) redisTemplate.opsForValue().get(cacheKey);
+    }
+
     @Override
     public void userOnlineHandler(ImOnlineDto imOnlineDto) {
         Long userId = imOnlineDto.getUserId();
         Integer roomId = imOnlineDto.getRoomId();
         Integer appId = imOnlineDto.getAppId();
+
         /**
          * 默认基于直播间存在的最大时间，存入用户 ID 和直播间 ID的绑定关系
          */
         String cacheKey = livingProviderCacheKeyBuilder.buildLivingRoomUserSet(roomId , appId);
+
         // 把用户存入队列
         redisTemplate.opsForSet().add(cacheKey , userId);
         redisTemplate.expire(cacheKey , 12 , TimeUnit.HOURS);
@@ -82,6 +188,14 @@ public class TLivingRoomServiceImpl extends ServiceImpl<TLivingRoomMapper, TLivi
         String cacheKey = livingProviderCacheKeyBuilder.buildLivingRoomUserSet(roomId , appId);
         redisTemplate.opsForSet().remove(cacheKey , userId);
         LOGGER.info("用户 {} 已经成功退出直播间：{}" , userId , roomId);
+
+        // 新增PK直播间 下线调用
+        LivingRoomReqDTO reqDTO = new LivingRoomReqDTO();
+        reqDTO.setRoomId(roomId);
+        reqDTO.setPkObjId(userId);
+
+        // TODO 暂时写死，断开 Channel 连接的时候断开 PK 连接
+        this.offlinePk(reqDTO);
     }
 
     @Override

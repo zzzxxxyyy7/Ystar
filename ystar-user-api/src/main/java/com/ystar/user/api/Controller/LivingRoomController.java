@@ -1,5 +1,6 @@
 package com.ystar.user.api.Controller;
 
+import com.ystar.common.VO.OnlinePKReqVO;
 import com.ystar.common.VO.WebResponseVO;
 import com.ystar.user.api.Service.ILivingRoomService;
 import com.ystar.user.api.error.YStarApiError;
@@ -12,7 +13,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ystar.framework.web.starter.context.YStarRequestContext;
-import ystar.living.Vo.resp.LivingRoomPageRespVO;
 
 @RestController
 @RequestMapping("/living")
@@ -20,6 +20,18 @@ public class LivingRoomController {
 
     @Resource
     private ILivingRoomService iLivingRoomService;
+
+    /**
+     * 连线 PK API 接口
+     * @param onlinePKReqVO
+     * @return
+     */
+    @PostMapping("/onlinePK")
+    @RequestLimit(limit = 1, second = 3)
+    public WebResponseVO onlinePk(OnlinePKReqVO onlinePKReqVO) {
+        ErrorAssert.isNotNull(onlinePKReqVO.getRoomId(), BizBaseErrorEnum.PARAM_ERROR);
+        return WebResponseVO.success(iLivingRoomService.onlinePK(onlinePKReqVO));
+    }
 
     @PostMapping("/list")
     public WebResponseVO list(LivingRoomReqVO livingRoomReqVO) {

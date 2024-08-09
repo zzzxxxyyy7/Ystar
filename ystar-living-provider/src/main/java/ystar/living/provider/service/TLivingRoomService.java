@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.ystar.common.VO.PageWrapper;
 import ystar.im.core.server.dto.ImOfflineDto;
 import ystar.im.core.server.dto.ImOnlineDto;
+import ystar.living.dto.LivingPkRespDTO;
 import ystar.living.dto.LivingRoomReqDTO;
 import ystar.living.dto.LivingRoomRespDTO;
 import ystar.living.provider.Domain.Po.TLivingRoomPo;
@@ -51,4 +52,22 @@ public interface TLivingRoomService extends IService<TLivingRoomPo> {
     List<LivingRoomRespDTO> listAllLivingRoomFromDB(Integer type);
 
     List<Long> queryUserIdsByRoomId(LivingRoomReqDTO livingRoomReqDTO);
+
+    /**
+     * 用户在pk直播间中，连上线请求
+     */
+    LivingPkRespDTO onlinePk(LivingRoomReqDTO livingRoomReqDTO);
+
+    /**
+     * 用户在pk直播间下线
+     */
+    boolean offlinePk(LivingRoomReqDTO livingRoomReqDTO);
+
+    /**
+     * 根据roomId查询当前pk人是谁
+     *
+     * @param roomId
+     * @return
+     */
+    Long queryOnlinePkUserId(Integer roomId);
 }

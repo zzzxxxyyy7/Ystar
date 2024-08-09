@@ -1,6 +1,7 @@
 package ystar.living.interfaces;
 
 import com.ystar.common.VO.PageWrapper;
+import ystar.living.dto.LivingPkRespDTO;
 import ystar.living.dto.LivingRoomReqDTO;
 import ystar.living.dto.LivingRoomRespDTO;
 
@@ -44,4 +45,22 @@ public interface ILivingRoomRpc {
      * @return
      */
     PageWrapper<LivingRoomRespDTO> list(LivingRoomReqDTO livingRoomReqDTO);
+
+    /**
+     * 当PK直播间连上线准备PK时，调用该请求
+     */
+    LivingPkRespDTO onlinePK(LivingRoomReqDTO livingRoomReqDTO);
+
+    /**
+     * 用户在pk直播间下线
+     *
+     * @param livingRoomReqDTO
+     * @return
+     */
+    boolean offlinePk(LivingRoomReqDTO livingRoomReqDTO);
+
+    /**
+     * 根据roomId查询当前pk人是谁
+     */
+    Long queryOnlinePkUserId(Integer roomId);
 }
